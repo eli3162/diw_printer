@@ -1,3 +1,7 @@
+'''
+Source code from rpi_python_drv8825 library by Lukas Schmid
+'''
+
 import RPi.GPIO as GPIO
 from time import sleep
 
