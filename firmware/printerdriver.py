@@ -1,9 +1,10 @@
 import gpiozero as GPIO # type: ignore[reportMissingImports]
-import asyncio, math, time, multiprocessing
-from datetime import datetime
+import asyncio, math, time, multiprocessing # type: ignore[reportMissingImports]
+
+xpos, ypos = 110, 110
 
 def timenow():
-    return ((datetime.now() - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())
+    return time.perf_counter()
 
 ControlMode = [
     'hardward',
@@ -57,31 +58,32 @@ class DRV8825():
                      '1/16step': (0, 0, 1),
                      '1/32step': (1, 0, 1)}
 
-        print("Control mode:",mode)
         if (mode == ControlMode[1]):
             self.configure_mode(microstep[stepformat])
     
-    def turnstep(self, steps, stepdelay, timestart):
-        while ((datetime.now() - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()) < timestart:
+    def turnstep(self, steps, stepdelay, activatationtime):
+        if activatationtime - timenow() < 0:
             pass
+        else:
+            while activatationtime - timenow() > 0:
+                pass
+        j=0
         deltatime = timenow()
         for i in range(steps):
+            j=j+1
             self.digital_write(self.step_pin, True)
-            if ((deltatime + ((i+1)*stepdelay)) - timenow()) < 0:
+            while deltatime + stepdelay*j > timenow():
                 pass
-            else:
-                time.sleep((deltatime + ((i+1)*stepdelay)) - timenow())
+            j=j+1
             self.digital_write(self.step_pin, False)
-            if ((deltatime + ((i+1)*stepdelay)) - timenow()) < 0:
+            while deltatime + stepdelay*j > timenow():
                 pass
-            else:
-                time.sleep((deltatime + ((i+1)*stepdelay)) - timenow())
-
         self.stop()
-        print(((datetime.now() - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds())-deltatime)
         return
     
-    async def asyncmove(self, mm, speed, time):
+    async def asyncmove(self, mm, speed, acttime=0):
+        if acttime==0:
+            acttime = timenow()+0.01
         steps = math.floor(abs(mm*(1.8*360*10)/(16*3.14)))
         if speed == 0:
             stepdelay=0
@@ -99,31 +101,31 @@ class DRV8825():
             return
         if steps == 0:
             return
-        p = multiprocessing.Process(target=self.turnstep, args=(steps, stepdelay, time,))
+        p = multiprocessing.Process(target=self.turnstep, args=(steps, stepdelay, acttime))
         p.start()
         return
         
     def move(self, mm, speed):
         return asyncio.run(self.asyncmove(mm, speed))
         
-async def asyncmoveto(point, speed):
+async def asyncmoveto(point, speed, delay=0.01):
     x = point[0]
     y = point[1]
+    acttime = timenow()+delay
     distance = math.sqrt(x**2+y**2)
-    time = distance/speed
+    deltatime = distance/speed
     try:
-        xspeed = abs(x/time)
-        yspeed = abs(y/time)
+        xspeed = abs(x/deltatime)
+        yspeed = abs(y/deltatime)
     except Exception as e:
         xspeed, yspeed = 0, 0
-    starttime = ((datetime.now() - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()) + 0.001
     asyncio.gather(
-        ymotor.asyncmove(y, yspeed, starttime),
-        xmotor.asyncmove(x, xspeed, starttime)
+        ymotor.asyncmove(y, yspeed, acttime=acttime),
+        xmotor.asyncmove(x, xspeed, acttime=acttime)
     )
     xmotor.stop()
     ymotor.stop()
-    await asyncio.sleep(time)
+    await asyncio.sleep(deltatime)
     return
 
 def moveto(point, speed, offset=-0.022):
@@ -135,7 +137,20 @@ def moveto(point, speed, offset=-0.022):
     time.sleep(abs(timerun+offset*distance))
     return 
 
+def move_to(point, speed):
+    global xpos, ypos
+    deltax = point[0]-xpos
+    deltay = point[1]-ypos
+    moveto((deltax, deltay), speed)
+    xpos, ypos = xpos+(deltax), ypos+(deltay)
+    return
+
+def calibration():
+    move_to((0, 0), 100)
+
+
 xmotor = DRV8825(dir_pin=13, step_pin=19, enable_pin=12, mode_pins=(16, 17, 20))
 ymotor = DRV8825(dir_pin=24, step_pin=18, enable_pin=4, mode_pins=(21, 22, 27))
 xmotor.setmicrostep('softward', 'fullstep')
 ymotor.setmicrostep('softward', 'fullstep')
+calibration()
