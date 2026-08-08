@@ -138,6 +138,9 @@ def moveto(point, speed, offset=-0.022):
     return 
 
 def move_to(point, speed):
+    '''
+    Use this to move to a point on the print bed
+    '''
     global xpos, ypos
     deltax = point[0]-xpos
     deltay = point[1]-ypos

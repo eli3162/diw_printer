@@ -3,7 +3,7 @@
     <head>
     <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>Printer Dashboard</title>
+        <title>Ethan's Website</title>
         <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
         <link rel="stylesheet" href="assets/styles.css">
         <link rel="icon" type="image/png" href="/assets/favicon-96x96.png" sizes="96x96" />
@@ -13,20 +13,7 @@
         <meta name="apple-mobile-web-app-title" content="Printer Control" />
         <link rel="manifest" href="/assets/site.webmanifest" />
     </head>
-    <header>
-        <div class="action-bar">
-            <a href="/"><img src="/assets/favicon.ico" alt="Logo" class="logo"></a>
-        </div>
-    </header>
     <body>
-        <div class="sub-sub-header p-4">Add GCode File:</div>
-        <div class="upload_button">
-            <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-                <input id="fileInput" type="file" name="file" required class="center hover:underline hover:font-bold">
-                <input type="submit" value="Upload" class="upbutton hover:underline hover:font-bold">
-            </form>
-        </div>
-        <div class="sub-sub-header p-4">Select Saved GCode File:</div>
-        {lists}
+        {gcodelist}
     </body>
 </html>
