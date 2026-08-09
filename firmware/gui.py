@@ -1,11 +1,12 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, send_file # type: ignore[reportMissingImports]
 from pathlib import Path # type: ignore[reportMissingImports]
-import os, gcodeparser, listtemplate # type: ignore[reportMissingImports]
+import os, listtemplate # type: ignore[reportMissingImports]
 from werkzeug.utils import secure_filename # type: ignore[reportMissingImports]
+import printerruntime, subprocess
 
 app = Flask(__name__)
 app.secret_key = "diwprintersession"
-allowed_filetx = {".gcode", ".nc", ".mpf", ".mpt"}
+allowed_filetx = {".gcode", ".nc", ".mpf", ".mpt", '.py'}
 def allowed_file(filename):
     return Path(filename).suffix.lower() in allowed_filetx
 
@@ -59,10 +60,8 @@ def delete_gcode(filename):
 
 @app.route("/print/<filename>")
 def print_gcode(filename):
-    with open('gcode/'+filename, 'r') as f:
-        for line in gcodeparser.parse_gcode_lines(f, include_comments=False):
-            print(line)
-    return 'Parsed'
+    printerruntime.print_gcode('gcode/'+filename)
+    return redirect('/')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
