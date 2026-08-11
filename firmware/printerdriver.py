@@ -2,7 +2,7 @@ import gpiozero as GPIO # type: ignore[reportMissingImports]
 import asyncio, math, time, multiprocessing # type: ignore[reportMissingImports]
 
 #xpos, ypos = 110, 110
-xpos, ypos = 0, 0
+xpos, ypos, zpos = 0, 0, 0
 
 def timenow():
     return time.perf_counter()
@@ -81,6 +81,26 @@ class DRV8825():
                 pass
         self.stop()
         return
+
+    def turnsteps(self, stepslist, stepdelay, activatationtime):
+        if activatationtime - timenow() < 0:
+            pass
+        else:
+            while activatationtime - timenow() > 0:
+                pass
+        j=0
+        deltatime = timenow()
+        for i in range(steps):
+            j=j+1
+            self.digital_write(self.step_pin, True)
+            while deltatime + stepdelay*j > timenow():
+                pass
+            j=j+1
+            self.digital_write(self.step_pin, False)
+            while deltatime + stepdelay*j > timenow():
+                pass
+        self.stop()
+        return
     
     async def asyncmove(self, mm, speed, acttime=0):
         if acttime==0:
@@ -105,11 +125,41 @@ class DRV8825():
         p = multiprocessing.Process(target=self.turnstep, args=(steps, stepdelay, acttime))
         p.start()
         return
-        
+    
     def move(self, mm, speed):
         return asyncio.run(self.asyncmove(mm, speed))
+
+    def moves(self, function, time, precision=100):
+        output_list = []
+        for i in range(precision*time):
+            output_list.append((math.floor(abs(eval(function.replace('x', str(i/precision)))*(1.8*360*10)/(16*3.14))), i/precision))
+        return output_list
+    
+    async def asyncmoves(self, mm, speed, acttime=0):
+        if acttime==0:
+            acttime = timenow()+0.01
+        steps = math.floor(abs(mm*(1.8*360*10)/(16*3.14)))
+        if speed == 0:
+            stepdelay=0
+        else:
+            stepdelay = abs(1/((speed)*(1.8*360*10)/(16*3.14)))
         
-async def asyncmoveto(point, speed, delay=0.01):
+        if mm>0:
+            self.digital_write(self.enable_pin, 1)
+            self.digital_write(self.dir_pin, 0)
+        elif mm<0:
+            self.digital_write(self.enable_pin, 1)
+            self.digital_write(self.dir_pin, 1)
+        else:
+            self.digital_write(self.enable_pin, 0)
+            return
+        if steps == 0:
+            return
+        p = multiprocessing.Process(target=self.turnstep, args=(steps, stepdelay, acttime))
+        p.start()
+        return
+
+async def asyncmoveto(point, speed, delay=0.01, stopafterfinish=True):
     x = point[0]
     y = point[1]
     acttime = timenow()+delay
@@ -124,28 +174,29 @@ async def asyncmoveto(point, speed, delay=0.01):
         ymotor.asyncmove(y, yspeed, acttime=acttime),
         xmotor.asyncmove(x, xspeed, acttime=acttime)
     )
-    xmotor.stop()
-    ymotor.stop()
+    if stopafterfinish:
+        xmotor.stop()
+        ymotor.stop()
     await asyncio.sleep(deltatime)
     return
 
-def moveto(point, speed, offset=-0.022):
+def moveto(point, speed, offset=-0.022, stopafterfinish=True):
     x = point[0]
     y = point[1]
     distance = math.sqrt(x**2+y**2)
     timerun = distance/speed
-    asyncio.run(asyncmoveto(point, speed))
+    asyncio.run(asyncmoveto(point, speed, stopafterfinish=stopafterfinish))
     time.sleep(abs(timerun+offset*distance))
     return 
 
-def move_to(point, speed):
+def move_to(point, speed, stopafterfinish=True):
     '''
     Use this to move to a point on the print bed
     '''
     global xpos, ypos
     deltax = point[0]-xpos
     deltay = point[1]-ypos
-    moveto((deltax, deltay), speed)
+    moveto((deltax, deltay), speed, stopafterfinish=stopafterfinish)
     xpos, ypos = xpos+(deltax), ypos+(deltay)
     return
 
@@ -161,3 +212,4 @@ def setup_motors():
 
 if __name__ == '__main__':
     setup_motors()
+    xmotor.moves

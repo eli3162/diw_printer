@@ -2,7 +2,7 @@ import gpiozero as GPIO # type: ignore[reportMissingImports]
 import asyncio, math, time, multiprocessing # type: ignore[reportMissingImports]
 
 #xpos, ypos = 110, 110
-xpos, ypos = 0, 0
+xpos, ypos, zpos = 0, 0, 0
 
 def timenow():
     return time.perf_counter()
