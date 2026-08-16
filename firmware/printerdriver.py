@@ -1,4 +1,7 @@
-import gpiozero as GPIO # type: ignore[reportMissingImports]
+try:
+    import gpiozero as GPIO # type: ignore[reportMissingImports]
+except ImportError:
+    pass
 import asyncio, math, time, multiprocessing # type: ignore[reportMissingImports]
 
 #xpos, ypos = 110, 110
