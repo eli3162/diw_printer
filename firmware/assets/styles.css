@@ -22,7 +22,6 @@ html * {
 }
 body {
     background-color: #121212;
-    background-image: url('https://github.com/?raw=true');
     background-repeat: no-repeat;
 }
 .action-bar {
