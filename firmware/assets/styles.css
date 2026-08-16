@@ -40,6 +40,7 @@ body {
     border-radius: 10px;
     max-width: 220px;
     padding: 10px;
+    font-size: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,7 +62,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-left: 16%;
+    margin-left: 19%
 }
 .upbutton {
     margin: auto;
