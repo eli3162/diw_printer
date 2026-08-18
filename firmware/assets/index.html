@@ -11,7 +11,7 @@
         <link rel="shortcut icon" href="/assets/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Printer Control" />
-        <link rel="manifest" href="/assets/site.webmanifest" />
+        <link rel="manifest" href="/assets/manifest.json" />
         <meta http-equiv="refresh" content="30">
     </head>
     <header>
@@ -23,7 +23,7 @@
         <div class="sub-sub-header p-4">Add GCode File:</div>
         <div class="upload_button">
             <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-                <input id="fileInput" type="file" name="file" required class="center hover:underline hover:font-bold">
+                <input id="fileInput" type="file" name="file" required class="center hover:underline">
                 <input type="submit" value="Upload" class="upbutton hover:underline hover:font-bold">
             </form>
         </div>

@@ -1,8 +1,8 @@
 @font-face {
     font-family: 'Mona Sans';
     src:
-        url('/assets/download/font.woff2') format('woff2 supports variations'),
-        url('/assets/download/font.woff2') format('woff2-variations');
+        url('/assets/font.woff2') format('woff2 supports variations'),
+        url('/assets/font.woff2') format('woff2-variations');
     font-weight: 200 900;
     font-stretch: 75% 125%;
 }
@@ -10,8 +10,8 @@
 @font-face {
     font-family: 'Hubot Sans';
     src:
-        url('/assets/download/font.woff2') format('woff2 supports variations'),
-        url('/assets/download/font.woff2') format('woff2-variations');
+        url('/assets/font.woff2') format('woff2 supports variations'),
+        url('/assets/font.woff2') format('woff2-variations');
     font-weight: 200 900;
     font-stretch: 75% 125%;
 }
@@ -22,7 +22,6 @@ html * {
 }
 body {
     background-color: #121212;
-    background-image: url('https://github.com/?raw=true');
     background-repeat: no-repeat;
 }
 .action-bar {
@@ -41,6 +40,7 @@ body {
     border-radius: 10px;
     max-width: 220px;
     padding: 10px;
+    font-size: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -62,7 +62,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-left: 16%;
+    margin-left: 19%
 }
 .upbutton {
     margin: auto;

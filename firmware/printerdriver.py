@@ -1,4 +1,8 @@
-import gpiozero as GPIO # type: ignore[reportMissingImports]
+try:
+    import gpiozero as GPIO # type: ignore[reportMissingImports]
+except ImportError:
+    print('STEPPER MOTOR TESTING DISABLED')
+    pass
 import asyncio, math, time, multiprocessing # type: ignore[reportMissingImports]
 
 #xpos, ypos = 110, 110
