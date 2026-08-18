@@ -13,6 +13,10 @@ def allowed_file(filename):
 def htmllist(list):
     return listtemplate.html(list)
 
+@app.route("/<filename>")
+def rootassets(filename):
+    return send_file(filename)
+
 @app.route("/")
 def home():
     with open("assets/index.html", "r") as file:

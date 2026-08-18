@@ -66,13 +66,16 @@ class DRV8825():
         if (mode == ControlMode[1]):
             self.configure_mode(microstep[stepformat])
     
-    def turnstep(self, steps, stepdelay, activatationtime):
+    def turnstep(self, steps, stepdelay, activatationtime, stop_if=False):
         if activatationtime - timenow() < 0:
             pass
         else:
             while activatationtime - timenow() > 0:
                 pass
         j=0
+        if bool(stop_if):
+            steps=1000000000
+
         deltatime = timenow()
         for i in range(steps):
             j=j+1
@@ -83,6 +86,13 @@ class DRV8825():
             self.digital_write(self.step_pin, False)
             while deltatime + stepdelay*j > timenow():
                 pass
+            if bool(stop_if):
+                if stop_if == 'xbutton':
+                    if x_button():
+                        break
+                elif stop_if == 'ybutton':
+                    if y_button():
+                        break
         self.stop()
         return
 
@@ -128,6 +138,29 @@ class DRV8825():
             return
         p = multiprocessing.Process(target=self.turnstep, args=(steps, stepdelay, acttime))
         p.start()
+        return
+
+    def nonasyncmove(self, mm, speed, acttime=0, stop_if=False):
+        if acttime==0:
+            acttime = timenow()+0.01
+        steps = math.floor(abs(mm*(1.8*360*10)/(16*3.14)))
+        if speed == 0:
+            stepdelay=0
+        else:
+            stepdelay = abs(1/((speed)*(1.8*360*10)/(16*3.14)))
+        
+        if mm>0:
+            self.digital_write(self.enable_pin, 1)
+            self.digital_write(self.dir_pin, 0)
+        elif mm<0:
+            self.digital_write(self.enable_pin, 1)
+            self.digital_write(self.dir_pin, 1)
+        else:
+            self.digital_write(self.enable_pin, 0)
+            return
+        if steps == 0:
+            return
+        self.turnstep(steps, stepdelay, acttime, stop_if=stop_if)
         return
     
     def move(self, mm, speed):
@@ -205,15 +238,40 @@ def move_to(point, speed, stopafterfinish=True):
     return
 
 def calibration():
+    global xpos, ypos
+    while x_button() == False:
+        xmotor.nonasyncmove(10000, 100, stop_if='xbutton')
+    xpos = 110
+    while y_button() == False:
+        ymotor.nonasyncmove(10000, 100, stop_if='ybutton')
+    ypos = 110
     move_to((0, 0), 100)
 
 def setup_motors():
-    global xmotor, ymotor
+    global xmotor, ymotor, xbutton, ybutton
     xmotor = DRV8825(dir_pin=13, step_pin=19, enable_pin=12, mode_pins=(16, 17, 20))
     ymotor = DRV8825(dir_pin=24, step_pin=18, enable_pin=4, mode_pins=(21, 22, 27))
     xmotor.setmicrostep('softward', 'fullstep')
     ymotor.setmicrostep('softward', 'fullstep')
+    xbutton, ybutton = GPIO.Button(15, pull_up=True, bounce_time=0.05), GPIO.Button(14, pull_up=True, bounce_time=0.05)
+
+
+def y_button():
+    global ybutton
+    if ybutton.is_pressed == False:
+        return True
+    else:
+        return False
+
+def x_button():
+    global xbutton
+    if xbutton.is_pressed == False:
+        return True
+    else:
+        return False
+    
 
 if __name__ == '__main__':
     setup_motors()
-    xmotor.moves
+    calibration()
+

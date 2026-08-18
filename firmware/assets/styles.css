@@ -22,7 +22,10 @@ html * {
 }
 body {
     background-color: #121212;
+<<<<<<< Updated upstream
     background-repeat: no-repeat;
+=======
+>>>>>>> Stashed changes
 }
 .action-bar {
     background-color: #333;
