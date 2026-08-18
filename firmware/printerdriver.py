@@ -94,6 +94,7 @@ class DRV8825():
                 pass
         j=0
         deltatime = timenow()
+        steps = 0
         for i in range(steps):
             j=j+1
             self.digital_write(self.step_pin, True)
