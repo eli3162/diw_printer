@@ -701,7 +701,7 @@
         "uuid": "e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
       }
     ],
-    "used_designators": "D1-2,Auxillary\\-Motor1,R1,Z\\-Motor1,Y\\-Motor1,Z\\-Button1,X\\-Button1,Auxillary\\-Button1,X\\-Motor1,JP2-4,C1-2,U1-2,SW1-9,Q1-3,Y\\-Button1-2,A1-7,J1-11,M1,M3-6",
+    "used_designators": "D1-2,R1,Z\\-Motor1,Y\\-Motor1,Z\\-Button1,X\\-Button1,Y\\-Button1-2,Auxillary\\-Button1,X\\-Motor1,JP2-4,Auxillary\\-Motor1,SW1,U1,C1-2,A1-7,J1-3,M3-6",
     "variants": []
   },
   "sheets": [
