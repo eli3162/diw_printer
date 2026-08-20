@@ -1,2 +1,2 @@
-# Printer Firmware
-This folder houses the printer firmware, which is coded in python to make the code more accessable and easily modifiable.
+# microflask
+Microflask is a extention for the Microdot framework, and allows seemless integration with regular Flask, only for microcontrollers
