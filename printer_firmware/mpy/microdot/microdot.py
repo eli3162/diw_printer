@@ -9,14 +9,14 @@ import asyncio
 import io
 import re
 import time
-
+import microdot.helpers
 try:
     import orjson as json  # type: ignore[import-not-found]
 except ImportError:
     import json
 
 try:
-    from inspect import iscoroutinefunction, iscoroutine # type:ignore
+    from inspect import iscoroutinefunction, iscoroutine
     from functools import partial
 
     async def invoke_handler(handler, *args, **kwargs):
@@ -28,7 +28,7 @@ try:
             ret = await handler(*args, **kwargs)
         else:
             ret = await asyncio.get_running_loop().run_in_executor(
-                None, partial(handler, *args, **kwargs)) # type:ignore
+                None, partial(handler, *args, **kwargs))
         return ret
 except ImportError:  # pragma: no cover
     def iscoroutine(coro):  # type: ignore[misc]
@@ -439,13 +439,11 @@ class Request:
             if isinstance(urlencoded, str):
                 for kv in [pair.split('=', 1)
                            for pair in urlencoded.split('&') if pair]:
-                    data[urldecode(kv[0])] = urldecode(kv[1]) \
-                        if len(kv) > 1 else ''
+                    data[urldecode(kv[0])] = urldecode(kv[1]) if len(kv) > 1 else ''
             elif isinstance(urlencoded, bytes):  # pragma: no branch
                 for kv in [pair.split(b'=', 1)
                            for pair in urlencoded.split(b'&') if pair]:
-                    data[urldecode(kv[0])] = urldecode(kv[1]) \
-                        if len(kv) > 1 else b''
+                    data[urldecode(kv[0])] = urldecode(kv[1]) if len(kv) > 1 else b''
         return data
 
     @property
@@ -470,7 +468,7 @@ class Request:
             mime_type = self.content_type.split(';')[0]
             if mime_type != 'application/json':
                 return None
-            self._json = json.loads(self.body.decode()) # type:ignore
+            self._json = json.loads(self.body.decode())
         return self._json
 
     @property
@@ -620,7 +618,7 @@ class Response:
             if isinstance(expires, str):
                 http_cookie += '; Expires=' + expires
             else:  # pragma: no cover
-                http_cookie += '; Expires=' + time.strftime( # type:ignore
+                http_cookie += '; Expires=' + time.strftime(
                     '%a, %d %b %Y %H:%M:%S GMT', expires.timetuple())
         if max_age is not None:
             http_cookie += '; Max-Age=' + str(max_age)
@@ -650,8 +648,7 @@ class Response:
                         max_age=0, **kwargs)
 
     def complete(self):
-        if isinstance(self.body, bytes) and \
-                'Content-Length' not in self.headers:
+        if isinstance(self.body, bytes) and 'Content-Length' not in self.headers:
             self.headers['Content-Length'] = str(len(self.body))
         if 'Content-Type' not in self.headers:
             self.headers['Content-Type'] = self.default_content_type
@@ -663,8 +660,7 @@ class Response:
 
         try:
             # status code
-            reason = self.reason if self.reason is not None else \
-                ('OK' if self.status_code == 200 else 'N/A')
+            reason = self.reason if self.reason is not None else ('OK' if self.status_code == 200 else 'N/A')
             await stream.awrite('HTTP/1.0 {status_code} {reason}\r\n'.format(
                 status_code=self.status_code, reason=reason).encode())
 
@@ -679,23 +675,21 @@ class Response:
             # body
             if not self.is_head:
                 iter = self.body_iter()
-                async for body in iter: # type:ignore
+                async for body in iter:
                     if isinstance(body, str):  # pragma: no cover
                         body = body.encode()
                     try:
                         await stream.awrite(body)
                     except OSError as exc:  # pragma: no cover
-                        if exc.errno in MUTED_SOCKET_ERRORS or \
-                                exc.args[0] == 'Connection lost':
+                        if exc.errno in MUTED_SOCKET_ERRORS or exc.args[0] == 'Connection lost':
                             if hasattr(iter, 'aclose'):
-                                await iter.aclose() # type:ignore
+                                await iter.aclose()
                         raise
                 if hasattr(iter, 'aclose'):  # pragma: no branch
-                    await iter.aclose() # type:ignore
+                    await iter.aclose()
 
         except OSError as exc:  # pragma: no cover
-            if exc.errno in MUTED_SOCKET_ERRORS or \
-                    exc.args[0] == 'Connection lost':
+            if exc.errno in MUTED_SOCKET_ERRORS or exc.args[0] == 'Connection lost':
                 pass
             else:
                 raise
@@ -729,17 +723,17 @@ class Response:
                         self.i = self.ITER_FILE_OBJ
                     elif hasattr(response.body, '__next__'):
                         self.i = self.ITER_SYNC_GEN
-                        return next(response.body) # type:ignore
+                        return next(response.body)
                     else:
                         self.i = self.ITER_NO_BODY
                         return response.body
                 elif self.i == self.ITER_SYNC_GEN:
                     try:
-                        return next(response.body) # type:ignore
+                        return next(response.body)
                     except StopIteration:
                         await self.aclose()
                         raise StopAsyncIteration
-                buf = response.body.read(response.send_file_buffer_size) # type:ignore
+                buf = response.body.read(response.send_file_buffer_size)
                 if iscoroutine(buf):  # pragma: no cover
                     buf = await buf
                 if len(buf) < response.send_file_buffer_size:
@@ -748,7 +742,7 @@ class Response:
 
             async def aclose(self):
                 if hasattr(response.body, 'close'):
-                    result = response.body.close() # type:ignore
+                    result = response.body.close()
                     if iscoroutine(result):  # pragma: no cover
                         await result
 
@@ -818,8 +812,7 @@ class Response:
             headers['Cache-Control'] = 'max-age={}'.format(max_age)
 
         if compressed:
-            headers['Content-Encoding'] = compressed \
-                if isinstance(compressed, str) else 'gzip'
+            headers['Content-Encoding'] = compressed if isinstance(compressed, str) else 'gzip'
 
         f = stream or open(filename + file_extension, 'rb')
         return cls(body=f, status_code=status_code, headers=headers)
@@ -859,7 +852,7 @@ class URLPattern():
                        as a string.
         """
         cls.segment_patterns[type_name] = '/({})'.format(pattern)
-        cls.segment_parsers[type_name] = parser # type:ignore
+        cls.segment_parsers[type_name] = parser
 
     def __init__(self, url_pattern):
         self.url_pattern = url_pattern
@@ -1283,7 +1276,7 @@ class Microdot:
 
         try:
             self.server = await asyncio.start_server(
-                serve, host, port, ssl=ssl, start_serving=start_serving) # type:ignore
+                serve, host, port, ssl=ssl, start_serving=start_serving)
             if not start_serving:
                 return self.server
         except TypeError:  # pragma: no cover
@@ -1356,7 +1349,7 @@ class Microdot:
                 request.app.shutdown()
                 return 'The server is shutting down...'
         """
-        self.server.close() # type:ignore
+        self.server.close()
 
     def find_route(self, req):
         method = req.method.upper()
@@ -1367,8 +1360,7 @@ class Microdot:
         f = 404
         p = ''
         s = None
-        for route_methods, route_pattern, route_handler, url_prefix, subapp \
-                in self.url_map:
+        for route_methods, route_pattern, route_handler, url_prefix, subapp in self.url_map:
             req.url_args = route_pattern.match(req.path)
             if req.url_args is not None:
                 p = url_prefix
@@ -1420,10 +1412,8 @@ class Microdot:
 
     def get_request_handlers(self, req, attr, local_first=True):
         handlers = getattr(self, attr + '_handlers')
-        local_handlers = getattr(req.subapp, attr + '_handlers') \
-            if req and req.subapp else []
-        return local_handlers + handlers if local_first \
-            else handlers + local_handlers
+        local_handlers = getattr(req.subapp, attr + '_handlers') if req and req.subapp else []
+        return local_handlers + handlers if local_first else handlers + local_handlers
 
     async def error_response(self, req, status_code, reason=None):
         if req and req.subapp and status_code in req.subapp.error_handlers:
@@ -1481,7 +1471,7 @@ class Microdot:
                                 # if the status code is missing, assume 200
                                 status_code = 200
                                 headers = res[1]
-                            res = Response(body, status_code, headers) # type:ignore
+                            res = Response(body, status_code, headers)
                         elif not isinstance(res, Response):
                             # any other response types are wrapped in a
                             # Response object
@@ -1517,8 +1507,7 @@ class Microdot:
                     # exists
                     handler = None
                     res = None
-                    if req.subapp and exc.__class__ in \
-                            req.subapp.error_handlers:
+                    if req.subapp and exc.__class__ in     req.subapp.error_handlers:
                         handler = req.subapp.error_handlers[exc.__class__]
                     elif exc.__class__ in self.error_handlers:
                         handler = self.error_handlers[exc.__class__]
@@ -1545,7 +1534,7 @@ class Microdot:
             # if the request could not be parsed, issue a 400 error
             res = await self.error_response(req, 400, 'Bad request')
         if isinstance(res, tuple):
-            res = Response(*res) # type:ignore
+            res = Response(*res)
         elif not isinstance(res, Response):
             res = Response(res)
         if not after_request_handled:

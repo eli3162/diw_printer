@@ -1,0 +1,23 @@
+{
+  "name": "Printer Dashboard",
+  "short_name": "Printer",
+  "theme_color": "#bababa",
+  "background_color": "#707070",
+  "display": "standalone",
+  "orientation": "any",
+  "scope": "/",
+  "start_url": "/",
+  "description": "Dashboard for Ethan's DIW Printer",
+  "icons": [
+    {
+      "src": "/assets/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

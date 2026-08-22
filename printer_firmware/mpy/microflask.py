@@ -5,9 +5,8 @@ Microflask
 The ``microflask`` mappings map Microdot fuctions to their Flask equivalents, allowing seemless integration from CPython to MicroPython
 """
 try:
-    from microdot import Microdot as Flask
     import mm_wlan as wireless
-    from microdot import * # type:ignore
+    from microdot.microdot import * # type:ignore
     import os, network
 except Exception as error:
     print(f'Error, your system is not supported. Check: Are you running Micropython? {error}')
@@ -27,9 +26,12 @@ def send_file(path, as_attachment=True):
         def index(request):
             return send_file('index.html') <-- This would serve the HTML file as raw text, not a webpage(see `send_html()` and `html()`)
     """
-    with open(path, 'rb') as file:
-        data = file.read()
-        return data
+    try:
+        with open(path, 'rb') as file:
+            data = file.read()
+            return data
+    except Exception as e:
+        return None
 
 def networkconnect(ssid, password):
     """Establishes WiFi network connection, allowing you to host a web server to others
@@ -107,3 +109,10 @@ def networkcreate(ssid, password):
     self_ip = ap.ifconfig()[0]
     print(f'Running at {self_ip} on network {ssid}, {password}.')
     return f'Running at {self_ip} on network {ssid}, {password}.'
+
+def secure_filename(filename):
+    filename = filename.replace(' ', '')
+    filename = filename.replace('(', '_')
+    filename = filename.replace(')', '')
+    filename = filename.replace('\n', '')
+    return filename
