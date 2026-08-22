@@ -17,9 +17,5 @@ def filefetch(request, filename):
 def index(request):
     return send_html('index.html')
 
-@app.error_handler(404)
-def errorpage(request):
-    return send_html('404.html')
-
 app.run(port=80, debug=True)
 

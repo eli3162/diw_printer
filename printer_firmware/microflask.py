@@ -7,7 +7,7 @@ The ``microflask`` mappings map Microdot fuctions to their Flask equivalents, al
 try:
     from microdot import Microdot as Flask
     import mm_wlan as wireless
-    from microdot import *
+    from microdot import * # type:ignore
     import os, network
 except Exception as error:
     print(f'Error, your system is not supported. Check: Are you running Micropython? {error}')

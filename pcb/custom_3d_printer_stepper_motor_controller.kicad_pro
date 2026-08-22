@@ -732,7 +732,7 @@
   "sheets": [
     [
       "e63e39d7-6ac0-4ffd-8aa3-1841a4541b55",
-      "six_stepper_motor_driver"
+      "custom_3d_printer_stepper_motor_controller"
     ]
   ],
   "text_variables": {},
