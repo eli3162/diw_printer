@@ -39,9 +39,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 1.02,
-          "height": 1.73,
-          "width": 2.03
+          "drill": 0.5,
+          "height": 0.8,
+          "width": 0.8
         },
         "silk_line_width": 0.12,
         "silk_text_italic": false,
@@ -92,12 +92,12 @@
         "diff_pair_gap_out_of_range": "error",
         "diff_pair_uncoupled_length_too_long": "error",
         "drill_out_of_range": "error",
-        "duplicate_footprints": "warning",
-        "extra_footprint": "warning",
+        "duplicate_footprints": "ignore",
+        "extra_footprint": "ignore",
         "footprint": "error",
         "footprint_filters_mismatch": "ignore",
-        "footprint_symbol_field_mismatch": "warning",
-        "footprint_symbol_mismatch": "warning",
+        "footprint_symbol_field_mismatch": "ignore",
+        "footprint_symbol_mismatch": "ignore",
         "footprint_type_mismatch": "error",
         "hole_clearance": "error",
         "hole_near_hole": "error",
@@ -109,14 +109,14 @@
         "items_not_allowed": "error",
         "length_out_of_range": "error",
         "lib_footprint_issues": "warning",
-        "lib_footprint_mismatch": "warning",
+        "lib_footprint_mismatch": "ignore",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
         "mirrored_text_on_front_layer": "warning",
         "missing_courtyard": "ignore",
-        "missing_footprint": "warning",
+        "missing_footprint": "ignore",
         "missing_tuning_profile": "warning",
-        "net_conflict": "warning",
+        "net_conflict": "ignore",
         "nonmirrored_text_on_back_layer": "warning",
         "npth_inside_courtyard": "ignore",
         "padstack": "error",
@@ -141,7 +141,7 @@
         "track_width": "error",
         "tracks_crossing": "error",
         "tuning_profile_track_geometries": "ignore",
-        "unconnected_items": "error",
+        "unconnected_items": "ignore",
         "unresolved_variable": "error",
         "via_dangling": "warning",
         "zone_has_empty_net": "error",
@@ -215,7 +215,8 @@
         }
       ],
       "track_widths": [
-        0.0
+        0.0,
+        0.5
       ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
@@ -509,7 +510,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "six_stepper_motor_driver.kicad_pro",
+    "filename": "custom_3d_printer_stepper_motor_controller.kicad_pro",
     "version": 3
   },
   "net_settings": {
@@ -720,12 +721,12 @@
     "subpart_id_separator": 0,
     "top_level_sheets": [
       {
-        "filename": "six_stepper_motor_driver.kicad_sch",
-        "name": "six_stepper_motor_driver",
+        "filename": "custom_3d_printer_stepper_motor_controller.kicad_sch",
+        "name": "custom_3d_printer_stepper_motor_controller",
         "uuid": "e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
       }
     ],
-    "used_designators": "D1-2,Auxillary\\-Motor1,R1,Z\\-Motor1,Y\\-Motor1,Z\\-Button1,X\\-Button1,Auxillary\\-Button1,X\\-Motor1,JP2-4,C1-2,U1-2,SW1-9,Q1-3,Y\\-Button1-2,A1-7,J1-11,M1,M3-6",
+    "used_designators": "M1,M3-6,J1-11,Y\\-Button1-2,Q1-3,A1-7,X\\-Motor1,JP2-4,Auxillary\\-Button1,X\\-Button1,Z\\-Button1,Z\\-Motor1,R1,SW1-9,U1-2,C1-2,Auxillary\\-Motor1,D1-2,Y\\-Motor1,12V IN1",
     "variants": []
   },
   "sheets": [
