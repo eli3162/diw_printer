@@ -8491,7 +8491,7 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "26f025c4-9be5-4c75-a90e-cd23c2380abc")
-		(property "Reference" "12V IN"
+		(property "Reference" "12V IN1"
 			(at 164.592 35.56 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8558,7 +8558,7 @@
 		(instances
 			(project "custom_3d_printer_stepper_motor_controller"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
-					(reference "12V IN")
+					(reference "12V IN1")
 					(unit 1)
 				)
 			)
