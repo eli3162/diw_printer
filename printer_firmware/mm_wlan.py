@@ -39,16 +39,15 @@ def connect_to_network(ssid, password, retries=10, verbose=True):
                 print(f'\nStatus:{wlan.status()}')
         raise RuntimeError('WLAN connection failed')
     else:
-        if verbose: print('\nConnected. IP Address = ' + get_ip())
+        if verbose: print('\nConnected. IP Address = ' + get_ip()) # type:ignore
 
 def get_ip(verbose=True):
     if is_connected():
         return wlan.ifconfig()[0]
     else:
-        if verbose: print('\nNot connected')
+        if verbose: 
+            print('\nNot connected')
         return None
         
 def is_connected():
     return wlan.status() == network.STAT_GOT_IP
-
-

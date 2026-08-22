@@ -16,7 +16,7 @@ except ImportError:
     import json
 
 try:
-    from inspect import iscoroutinefunction, iscoroutine
+    from inspect import iscoroutinefunction, iscoroutine # type:ignore
     from functools import partial
 
     async def invoke_handler(handler, *args, **kwargs):
@@ -28,7 +28,7 @@ try:
             ret = await handler(*args, **kwargs)
         else:
             ret = await asyncio.get_running_loop().run_in_executor(
-                None, partial(handler, *args, **kwargs))
+                None, partial(handler, *args, **kwargs)) # type:ignore
         return ret
 except ImportError:  # pragma: no cover
     def iscoroutine(coro):  # type: ignore[misc]
@@ -470,7 +470,7 @@ class Request:
             mime_type = self.content_type.split(';')[0]
             if mime_type != 'application/json':
                 return None
-            self._json = json.loads(self.body.decode())
+            self._json = json.loads(self.body.decode()) # type:ignore
         return self._json
 
     @property
@@ -620,7 +620,7 @@ class Response:
             if isinstance(expires, str):
                 http_cookie += '; Expires=' + expires
             else:  # pragma: no cover
-                http_cookie += '; Expires=' + time.strftime(
+                http_cookie += '; Expires=' + time.strftime( # type:ignore
                     '%a, %d %b %Y %H:%M:%S GMT', expires.timetuple())
         if max_age is not None:
             http_cookie += '; Max-Age=' + str(max_age)
@@ -679,7 +679,7 @@ class Response:
             # body
             if not self.is_head:
                 iter = self.body_iter()
-                async for body in iter:
+                async for body in iter: # type:ignore
                     if isinstance(body, str):  # pragma: no cover
                         body = body.encode()
                     try:
@@ -688,10 +688,10 @@ class Response:
                         if exc.errno in MUTED_SOCKET_ERRORS or \
                                 exc.args[0] == 'Connection lost':
                             if hasattr(iter, 'aclose'):
-                                await iter.aclose()
+                                await iter.aclose() # type:ignore
                         raise
                 if hasattr(iter, 'aclose'):  # pragma: no branch
-                    await iter.aclose()
+                    await iter.aclose() # type:ignore
 
         except OSError as exc:  # pragma: no cover
             if exc.errno in MUTED_SOCKET_ERRORS or \
@@ -729,17 +729,17 @@ class Response:
                         self.i = self.ITER_FILE_OBJ
                     elif hasattr(response.body, '__next__'):
                         self.i = self.ITER_SYNC_GEN
-                        return next(response.body)
+                        return next(response.body) # type:ignore
                     else:
                         self.i = self.ITER_NO_BODY
                         return response.body
                 elif self.i == self.ITER_SYNC_GEN:
                     try:
-                        return next(response.body)
+                        return next(response.body) # type:ignore
                     except StopIteration:
                         await self.aclose()
                         raise StopAsyncIteration
-                buf = response.body.read(response.send_file_buffer_size)
+                buf = response.body.read(response.send_file_buffer_size) # type:ignore
                 if iscoroutine(buf):  # pragma: no cover
                     buf = await buf
                 if len(buf) < response.send_file_buffer_size:
@@ -748,7 +748,7 @@ class Response:
 
             async def aclose(self):
                 if hasattr(response.body, 'close'):
-                    result = response.body.close()
+                    result = response.body.close() # type:ignore
                     if iscoroutine(result):  # pragma: no cover
                         await result
 
@@ -859,7 +859,7 @@ class URLPattern():
                        as a string.
         """
         cls.segment_patterns[type_name] = '/({})'.format(pattern)
-        cls.segment_parsers[type_name] = parser
+        cls.segment_parsers[type_name] = parser # type:ignore
 
     def __init__(self, url_pattern):
         self.url_pattern = url_pattern
@@ -1283,7 +1283,7 @@ class Microdot:
 
         try:
             self.server = await asyncio.start_server(
-                serve, host, port, ssl=ssl, start_serving=start_serving)
+                serve, host, port, ssl=ssl, start_serving=start_serving) # type:ignore
             if not start_serving:
                 return self.server
         except TypeError:  # pragma: no cover
@@ -1356,7 +1356,7 @@ class Microdot:
                 request.app.shutdown()
                 return 'The server is shutting down...'
         """
-        self.server.close()
+        self.server.close() # type:ignore
 
     def find_route(self, req):
         method = req.method.upper()
@@ -1481,7 +1481,7 @@ class Microdot:
                                 # if the status code is missing, assume 200
                                 status_code = 200
                                 headers = res[1]
-                            res = Response(body, status_code, headers)
+                            res = Response(body, status_code, headers) # type:ignore
                         elif not isinstance(res, Response):
                             # any other response types are wrapped in a
                             # Response object
@@ -1545,7 +1545,7 @@ class Microdot:
             # if the request could not be parsed, issue a 400 error
             res = await self.error_response(req, 400, 'Bad request')
         if isinstance(res, tuple):
-            res = Response(*res)
+            res = Response(*res) # type:ignore
         elif not isinstance(res, Response):
             res = Response(res)
         if not after_request_handled:
