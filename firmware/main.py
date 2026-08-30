@@ -13,7 +13,7 @@ def display(message, clear=False):
     else:
         output.textContent = str(message)
 
-async def send_to_pico(message):
+async def send_to_printer(message):
     message = str(message)
     global printer_connected, connected_status
     if printer_connected:
@@ -30,7 +30,7 @@ async def send_to_pico(message):
             display('DISCONNECTED')
         printer_connected = False
 
-def receive_from_pico(message):
+def receive_from_printer(message):
     console.log(str(message))
     global lastmessage
     message = str(message)
@@ -38,7 +38,7 @@ def receive_from_pico(message):
         display(message)
     lastmessage = message
 
-window.receiveFromPico = receive_from_pico
+window.receiveFromPico = receive_from_printer
 
 async def connect(event=None):
     global printer_connected, lastmessage
@@ -46,13 +46,14 @@ async def connect(event=None):
     await check_if_disconnected()
     if printer_connected:
         display('', clear=True)
-        await send_command('import sys')
-        await send_command('print(sys.version)')
+        await send_command('import os, sys')
+        await send_command('device_info = os.uname()')
+        await send_command('print(sys.version, device_info.machine)')
 
 async def check_if_disconnected():
     global printer_connected, lastmessage, connected_status
     try:
-        await send_to_pico('Heartbeat')
+        await send_to_printer('Heartbeat')
     except Exception as e:
         pass
     await asyncio.sleep(0.1)
@@ -77,7 +78,7 @@ async def send_button(event=None):
     await send_command(message)
 
 async def send_command(command):
-    return await send_to_pico('serverexecutable:'+command)
+    return await send_to_printer('serverexecutable:'+command)
 
 document.querySelector("#connect").onclick = connect
 document.querySelector("#send").onclick = send_button
