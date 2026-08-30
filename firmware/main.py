@@ -1,21 +1,26 @@
-from js import window
-from pyscript import document, web
+from js import window # type: ignore
+from pyscript import document, web # type: ignore
 import asyncio
 
 connected_status = web.page['connect']
 printer_connected = False
 lastmessage = ''
 
-def display(message):
+def display(message, clear=False):
     output = document.querySelector("#output")
-    output.textContent += str(message) + "\n"
+    if not clear:
+        output.textContent += str(message) + "\n"
+    else:
+        output.textContent = str(message)
 
 async def send_to_pico(message):
     message = str(message)
     global printer_connected, connected_status
     if printer_connected:
         if not message == 'Heartbeat':
-            display("CLIENT:" + message)
+            # Disable Client Debugging
+            #display("CLIENT:" + message)
+            pass
     try:
         await window.writeSerial(message)
     except Exception as e:
@@ -27,8 +32,8 @@ async def send_to_pico(message):
 def receive_from_pico(message):
     global lastmessage
     message = str(message)
-    if not message.startswith('ECHO:'):
-        display("SERVER:" + message)
+    if not message.startswith('ECHO:') and not message == 'CMDOUT:None':
+        display(message)
     lastmessage = message
 
 window.receiveFromPico = receive_from_pico
@@ -37,6 +42,10 @@ async def connect(event=None):
     global printer_connected, lastmessage
     await window.connectPico()
     await check_if_disconnected()
+    if printer_connected:
+        display('', clear=True)
+        await send_command('import sys')
+        await send_command('print(sys.version)')
 
 async def check_if_disconnected():
     global printer_connected, lastmessage, connected_status
