@@ -11,10 +11,11 @@
         <link rel="shortcut icon" href="/assets/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Printer Control" />
-        <link rel="manifest" href="/assets/manifest.json" />
         <meta http-equiv="refresh" content="30">
         <link rel="manifest" href="/manifest.json" />
-    </head>
+        <link rel="stylesheet" href="https://pyscript.net/releases/2026.3.1/core.css">
+        <script type="module" src="https://pyscript.net/releases/2026.3.1/core.js"></script>
+</head>
     <header>
         <div class="action-bar">
             <a href="/"><img src="/assets/favicon.ico" alt="Logo" class="logo"></a>
@@ -22,13 +23,14 @@
     </header>
     <body>
         <div class="sub-sub-header p-4">Add GCode File:</div>
-        <div class="upload_button">
-            <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-                <input id="fileInput" type="file" name="file" required class="center hover:underline">
-                <input type="submit" value="Upload" class="upbutton hover:underline hover:font-bold">
-            </form>
-        </div>
+        <button id="connect">Connect Pico</button>
+        <br><br>
+        <input id="message" value="hello">
+        <button id="send">Send</button>
+        <h3>Terminal</h3>
+        <pre id="output"></pre>
         <div class="sub-sub-header p-4">Select Saved GCode File:</div>
-        {lists}
+        <script src="assets/webserial.js"></script>
+        <script type="mpy" src="main.py"></script>
     </body>
 </html>

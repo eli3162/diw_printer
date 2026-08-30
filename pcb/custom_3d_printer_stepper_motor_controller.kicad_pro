@@ -569,7 +569,7 @@
       "plot": "gerber/",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "../../Downloads/six_stepper_motor_driver.glb",
+      "step": "../../Downloads/six_stepper_motor_driver.step",
       "svg": "",
       "vrml": ""
     },
