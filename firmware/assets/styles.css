@@ -48,6 +48,26 @@ body {
     margin-left: 10px;
     margin: auto;
 }
+.terminal_box {
+    background-color: #333;
+    border-radius: 10px;
+    max-width: 80%;
+    padding: 10px;
+    font-size: 12px;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin: auto;
+}
+.selectinput_box {
+    background-color: #333;
+    border-radius: 10px;
+    max-width: 220px;
+    padding: 10px;
+    font-size: 12px;
+    margin-top: 10px;
+    margin-left: 10px;
+    margin: auto;
+}
 .select-box {
     background-color: #333;
     border-radius: 10px;

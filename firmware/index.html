@@ -11,7 +11,6 @@
         <link rel="shortcut icon" href="/assets/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Printer Control" />
-        <meta http-equiv="refresh" content="30">
         <link rel="manifest" href="/manifest.json" />
         <link rel="stylesheet" href="https://pyscript.net/releases/2026.3.1/core.css">
         <script type="module" src="https://pyscript.net/releases/2026.3.1/core.js"></script>
@@ -22,14 +21,18 @@
         </div>
     </header>
     <body>
-        <div class="sub-sub-header p-4">Add GCode File:</div>
-        <button id="connect">Connect Pico</button>
+        <div class="sub-sub-header p-4">Connect Printer</div>
+        <button id="connect" class="upload_button hover:bold rounded-lg transition-transform duration-300 ease-in-out hover:scale-105">Connect Printer - Not Connected</button>
         <br><br>
-        <input id="message" value="hello">
-        <button id="send">Send</button>
-        <h3>Terminal</h3>
-        <pre id="output"></pre>
-        <div class="sub-sub-header p-4">Select Saved GCode File:</div>
+        <div class="selectinput_box">
+            <input id="message" value="hello">
+            <button id="send">Send</button>
+        </div>
+        <br>
+        <div class="terminal_box">
+            <h3 class="">Terminal</h3>
+            <pre id="output"></pre>
+        </div>
         <script src="assets/webserial.js"></script>
         <script type="mpy" src="main.py"></script>
     </body>
