@@ -1,4 +1,4 @@
-from js import window # type: ignore
+from js import window, console # type: ignore
 from pyscript import document, web # type: ignore
 import asyncio
 
@@ -20,6 +20,7 @@ async def send_to_pico(message):
         if not message == 'Heartbeat':
             # Disable Client Debugging
             #display("CLIENT:" + message)
+            console.log('CLIENT:'+str(message))
             pass
     try:
         await window.writeSerial(message)
@@ -30,6 +31,7 @@ async def send_to_pico(message):
         printer_connected = False
 
 def receive_from_pico(message):
+    console.log(str(message))
     global lastmessage
     message = str(message)
     if not message.startswith('ECHO:') and not message == 'CMDOUT:None':
