@@ -5,6 +5,7 @@ import asyncio, time
 connected_status = web.page['connect']
 printer_connected = False
 lastmessage = ''
+runspeedtest = False
 
 def display(message, clear=False):
     output = document.querySelector("#output")
@@ -26,18 +27,25 @@ async def send_to_printer(message):
             display('DISCONNECTED')
         printer_connected = False
 
-def receive_from_printer(message):
+async def receive_from_printer(message):
     console.log(str(message))
     global lastmessage
     message = str(message)
-    if not message.startswith('ECHO:') and not message == 'CMDOUT:None':
+    if not message.startswith('ECHO:') and not message == 'CMDOUT:None' and not message.startswith('clientexecutable:'):
         display(message)
+    if message.startswith('clientexecutable:'):
+        command = message[17:]
+        try:
+            output = await exec(command)
+        except Exception as e:
+            output = e
+        await send_to_printer('CMDOUT:'+str(output))
     lastmessage = message
 
 window.receiveFromPico = receive_from_printer
 
 async def connect(event=None):
-    global printer_connected, lastmessage
+    global printer_connected, lastmessage, runspeedtest
     await window.connectPico()
     await check_if_disconnected()
     if printer_connected:
@@ -45,7 +53,8 @@ async def connect(event=None):
         await send_command('import os, sys')
         await send_command('device_info = os.uname()')
         await send_command('print(sys.version, device_info.machine)')
-        await speed_test()
+        if runspeedtest:
+            await speed_test()
 
 async def check_if_disconnected():
     global printer_connected, lastmessage, connected_status
