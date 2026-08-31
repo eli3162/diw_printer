@@ -52,6 +52,10 @@ async def check_if_disconnected():
     try:
         await send_to_printer('ECHO:Heartbeat')
     except Exception as e:
+        connected_status.textContent = 'Connect Printer - Not Connected'
+        if printer_connected:
+            display("DISCONNECTED")
+        printer_connected = False
         pass
     await asyncio.sleep(0.1)
     if lastmessage == 'ECHO:Heartbeat':
@@ -64,6 +68,7 @@ async def check_if_disconnected():
         if printer_connected:
             display("DISCONNECTED")
         printer_connected = False
+    await send_to_printer('ECHO:Refresh')
 
 async def check():
     while True:
