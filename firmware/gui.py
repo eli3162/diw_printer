@@ -5,7 +5,7 @@ import asyncio, time
 connected_status = web.page['connect']
 printer_connected = False
 lastmessage = ''
-runspeedtest = False
+runspeedtest = True
 
 def display(message, clear=False):
     output = document.querySelector("#output")
