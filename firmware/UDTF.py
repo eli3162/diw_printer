@@ -125,3 +125,7 @@ def save_packet(json_packet):
     json_content = json.loads(json_packet)
     with standard_open((json_content['type'] + '-' + json_content['uuid'] + '.json'), 'w') as savefile:
         json.dump(json_content, savefile)
+
+def load_packet(path):
+    return recieve(standard_open(path, 'r').read())
+
