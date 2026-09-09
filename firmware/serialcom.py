@@ -148,7 +148,7 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
     if validate_packet(message):
         return json.dumps(message)
     else:
-        raise ValueError("Error: Corrupted JSON")
+        raise ConnectionError("Error: Corrupted JSON")
 
 def send_file(file_dict, filename: str=None):
     '''
@@ -165,7 +165,7 @@ def send_file(file_dict, filename: str=None):
                 filename = file_dict.name
             filename = file_dict.read()
         except Exception:
-            raise ValueError('Please use the file_open function as the standard open function will not return the filename as metadata')
+            raise DeprecationWarning('Please use the file_open function as the standard open function will not return the filename as metadata')
     else:
         filename = file_dict['name']
         filedata = file_dict['file'].read()
@@ -199,7 +199,6 @@ def validate_packet(data):
     serialcom.validate_packet(json_data) -> True / False
     ```
     '''
-    print(hash_data(str(data['data'])), data['datahash'])
     if hash_data(data['data']) == data['datahash']:
         return True
     else:
@@ -263,7 +262,7 @@ def receive(json_data: dict):
         elif datatype == 'exec':
             exec_parse(data)
 
-def save_packet(json_packet):
+def save_packet(json_packet, name: str=None):
     '''
     Save a Serialcom JSON Packet as a file
     
@@ -274,7 +273,9 @@ def save_packet(json_packet):
     '''
     global mpy
     json_content = json.loads(json_packet)
-    with open((json_content['type'] + '-' + json_content['uuid'] + '.json'), 'w') as savefile:
+    if not name or not isinstance(name, str):
+        name = (json_content['type'] + '-' + json_content['uuid'] + '.json'), 'w'
+    with open(name, 'w') as savefile:
         json.dump(json_content, savefile)
 
 def load_packet(path: str):
@@ -288,4 +289,3 @@ def load_packet(path: str):
     '''
     return receive(open(path, 'r').read())
 
-save_packet(send_file(file_open('README.md', 'r')))
