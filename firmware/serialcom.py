@@ -139,7 +139,7 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
 
     if metadata:
         if isinstance(metadata, dict):
-            raise ValueError('Please format Metadata as a dictonary')
+            raise TypeError('Please format Metadata as a dictonary')
         message['metadata'] = metadata
 
     # Data
@@ -148,7 +148,7 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
     if validate_packet(message):
         return json.dumps(message)
     else:
-        raise ConnectionError("Error: Corrupted JSON")
+        raise OSError("Corrupted JSON")
 
 def send_file(file_dict, filename: str=None):
     '''
@@ -165,7 +165,7 @@ def send_file(file_dict, filename: str=None):
                 filename = file_dict.name
             filename = file_dict.read()
         except Exception:
-            raise DeprecationWarning('Please use the file_open function as the standard open function will not return the filename as metadata')
+            raise TypeError('Please use the file_open function as the standard open function will not return the filename as metadata')
     else:
         filename = file_dict['name']
         filedata = file_dict['file'].read()
@@ -175,7 +175,7 @@ def send_file(file_dict, filename: str=None):
     elif isinstance(filedata, bytes):
         filetype = 'binaryfile'
     else:
-        raise ValueError('Filetype not string or bytes')
+        raise TypeError('Filetype not string or bytes')
     encoded_filedata = encode_data(filedata)
     return send(filetype, encoded_filedata, name=filename, skip_encode=True)
 
@@ -251,7 +251,7 @@ def receive(json_data: dict):
     # Data Validation
     valid = validate_packet(data)
     if not valid:
-        raise ValueError('Error: Invalid Data: Data Hashes do not match! Possibly corrupted / tampered data?')
+        raise OSError('Invalid Data: Data Hashes do not match! Possibly corrupted / tampered data?')
     
     if valid:
         # Data Handlers
