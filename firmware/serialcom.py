@@ -127,7 +127,7 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
     message = {}
 
     # Headers
-    datahash = hash_data(encoded_data)
+    datahash = hash_data(str(encoded_data).replace('\n', ''))
     message['type'] = datatype
     message['uuid'] = hash_data(str(localtime())+datahash)
     message['time'] = localtime()
@@ -139,7 +139,7 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
 
     if metadata:
         if isinstance(metadata, dict):
-            raise 'Please format Metadata as a dictonary'
+            raise ValueError('Please format Metadata as a dictonary')
         message['metadata'] = metadata
 
     # Data
@@ -148,7 +148,7 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
     if validate_packet(message):
         return json.dumps(message)
     else:
-        raise "Error: Corrupted JSON"
+        raise ValueError("Error: Corrupted JSON")
 
 def send_file(file_dict, filename: str=None):
     '''
@@ -165,7 +165,7 @@ def send_file(file_dict, filename: str=None):
                 filename = file_dict.name
             filename = file_dict.read()
         except Exception:
-            raise 'Please use the file_open function as the standard open function will not return the filename as metadata'
+            raise ValueError('Please use the file_open function as the standard open function will not return the filename as metadata')
     else:
         filename = file_dict['name']
         filedata = file_dict['file'].read()
@@ -175,7 +175,7 @@ def send_file(file_dict, filename: str=None):
     elif isinstance(filedata, bytes):
         filetype = 'binaryfile'
     else:
-        raise 'Filetype not string or bytes'
+        raise ValueError('Filetype not string or bytes')
     encoded_filedata = encode_data(filedata)
     return send(filetype, encoded_filedata, name=filename, skip_encode=True)
 
@@ -190,7 +190,7 @@ def send_exec(command: str):
     '''
     return send('exec', command)
 
-def validate_packet(data: dict):
+def validate_packet(data):
     '''
     Check for data corruption with SHA-256 Data Hash
 
@@ -199,11 +199,11 @@ def validate_packet(data: dict):
     serialcom.validate_packet(json_data) -> True / False
     ```
     '''
+    print(hash_data(str(data['data'])), data['datahash'])
     if hash_data(data['data']) == data['datahash']:
-        valid = True
+        return True
     else:
-        valid = False
-    return valid
+        return False
 
 def file_parse(data: dict):
     '''
@@ -214,7 +214,6 @@ def file_parse(data: dict):
     filedata = decode_data(data['data'])
     with open(filename, "w", encoding="utf-8") as writefile:
         writefile.write(filedata)
-        writefile.close()
 
 def binaryfile_parse(data: dict):
     '''
@@ -225,7 +224,6 @@ def binaryfile_parse(data: dict):
     filebinarydata = decode_data(data['data'], binary=True)
     with open(filebinaryname, "wb") as writebinaryfile:
         writebinaryfile.write(filebinarydata)
-        writebinaryfile.close()
 
 def exec_parse(data: dict):
     '''
@@ -254,7 +252,7 @@ def receive(json_data: dict):
     # Data Validation
     valid = validate_packet(data)
     if not valid:
-        raise 'Error: Invalid Data: Data Hashes do not match! Possibly corrupted / tampered data?'
+        raise ValueError('Error: Invalid Data: Data Hashes do not match! Possibly corrupted / tampered data?')
     
     if valid:
         # Data Handlers
@@ -289,3 +287,5 @@ def load_packet(path: str):
     ```
     '''
     return receive(open(path, 'r').read())
+
+save_packet(send_file(file_open('README.md', 'r')))
