@@ -23,18 +23,11 @@
         </div>
     </header>
     <body>
-        <div class="sub-sub-header p-4">Connect Printer</div>
-        <button id="connect" class="upload_button hover:bold rounded-lg transition-transform duration-300 ease-in-out hover:scale-105">Connect Printer - Not Connected</button>
-        <br><br>
-        <div class="selectinput_box">
-            <input id="message" value="print('Hello World!')">
-            <button id="send">Send</button>
-        </div>
-        <br>
-        <div class="terminal_box">
-            <h3 class="">Terminal</h3>
-            <pre id="output"></pre>
-        </div>
-        <script type="mpy" src="./gui.py"></script>
+        <script type="mpy-config">
+            [files]
+            "./serialcom.py" = "./serialcom.py"
+            "./webserial.py" = "./webserial.py"
+        </script>
+        <script type="mpy" src="./main.py"></script>
     </body>
 </html>
