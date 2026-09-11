@@ -50,9 +50,12 @@ def file_open(filepath: str, mode: str):
     serialcom.file_open('file', mode) -> {'file': fileobj, 'name': filename}
     ```
     '''
+    if not isinstance(filepath, str): raise TypeError('Filepath must be string')
+    if not isinstance(mode, str): raise TypeError('File open mode must be string')
+
     return {'file': open(filepath, mode), 'name': filepath.rstrip('/').rsplit('/', 1)[-1]}
 
-def encode_data(data: str | bytes):
+def encode_data(data):
     '''
     Encode data in base64 encoding.
     
@@ -61,8 +64,18 @@ def encode_data(data: str | bytes):
     serialcom.encode_data(data_to_encode)
     ```
     '''
-    if isinstance(data, str):
+    if isinstance(data, [int, float, list, tuple, dict, bool]):
+        data = str(data).encode('utf-8')
+
+    elif isinstance(data, str):
         data = data.encode('utf-8')
+
+    elif isinstance(data, bytes):
+        pass
+
+    else:
+        raise TypeError('Data to encode must be of int, float, list, tiple, dict, bool, str, or bytes')
+    
     return standard_b64encode(data).decode('utf-8')
 
 def decode_data(encoded_data: str | bytes):
@@ -77,12 +90,14 @@ def decode_data(encoded_data: str | bytes):
 
     if isinstance(encoded_data, bytes):
         return standard_b64decode(encoded_data)
-    else:
+    elif isinstance(encoded_data, str):
         return standard_b64decode(encoded_data).decode('utf-8')
+    else:
+        raise TypeError('Data to decode must be of str or bytes')
 
-def hash_data(base64string: str):
+def hash_data(data):
     '''
-    Hashes a string of data with SHA-256:
+    Hashes data with SHA-256:
     
     Usage:
     ```
@@ -90,10 +105,10 @@ def hash_data(base64string: str):
     ```
     '''
     global mpy
-    if not isinstance(base64string, bytes):
-        base64string = str(base64string).encode('utf-8')
+    if not isinstance(data, bytes):
+        data = str(data).encode('utf-8')
     hash_obj = hashlib.sha256()
-    hash_obj.update(base64string)
+    hash_obj.update(data)
     return hex_hash(hash_obj)
 
 def localtime():
@@ -109,7 +124,7 @@ def localtime():
     '''
     return timenow()
 
-def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, skip_encode: bool=False):
+def send(datatype: str, data, metadata: dict=None, name: str=None, skip_encode: bool=False):
     '''
     Sends Python/Micropython data with Serialcom JSON, allowing custom datatypes, metadata, and more:
     
@@ -123,11 +138,14 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
     else: 
         encoded_data = data
 
+    if '\n' in encoded_data or not isinstance(encoded_data, str):
+        encoded_data = str(encoded_data).replace('\n', '')
+
     # Message Builder
     message = {}
 
     # Headers
-    datahash = hash_data(str(encoded_data).replace('\n', ''))
+    datahash = hash_data(encoded_data)
     message['type'] = datatype
     message['uuid'] = hash_data(str(localtime())+datahash)
     message['time'] = localtime()
@@ -143,12 +161,12 @@ def send(datatype: str, data: str | bytes, metadata: dict=None, name: str=None, 
         message['metadata'] = metadata
 
     # Data
-    message['data'] = str(encoded_data).replace('\n', '')
+    message['data'] = encoded_data
 
     if validate_packet(message):
         return json.dumps(message)
     else:
-        raise OSError("Corrupted JSON")
+        raise DataCorruptionError("Corrupted JSON")
 
 def send_file(file_dict, filename: str=None):
     '''
@@ -189,6 +207,12 @@ def send_exec(command: str):
     ```
     '''
     return send('exec', command)
+
+class DataCorruptionError(Exception):
+    '''
+    Class for Data Corruption Errors
+    '''
+    pass
 
 def validate_packet(data):
     '''
@@ -251,7 +275,7 @@ def receive(json_data: dict):
     # Data Validation
     valid = validate_packet(data)
     if not valid:
-        raise OSError('Invalid Data: Data Hashes do not match! Possibly corrupted / tampered data?')
+        raise DataCorruptionError('Invalid Data: Data Hashes do not match! Possibly corrupted / tampered data?')
     
     if valid:
         # Data Handlers
