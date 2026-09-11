@@ -313,3 +313,4 @@ def load_packet(path: str):
     '''
     return receive(open(path, 'r').read())
 
+
