@@ -7,7 +7,7 @@ Micropython firmware for driving stepper motors with the DRV8825 module.
 import asyncio
 import math
 
-import machine  # type: ignore
+import machine  # pyright: ignore[reportMissingImports]
 
 
 class MachineError(Exception):
