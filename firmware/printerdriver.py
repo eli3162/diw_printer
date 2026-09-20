@@ -22,9 +22,9 @@ class StepperMotor:
         self.dir_pin = int(dir_pin)
         self.steps_per_turn = steps_per_turn
         self.control_pins = {
-            self.enable_pin: machine.Pin(self.enable_pin, machine.Pin.OUT),
-            self.step_pin: machine.Pin(self.step_pin, machine.Pin.OUT),
-           self.dir_pin: machine.Pin(self.dir_pin, machine.Pin.OUT)
+            self.enable_pin: machine.Pin(self.enable_pin, machine.Pin.OUT, value=1),
+            self.step_pin: machine.Pin(self.step_pin, machine.Pin.OUT, value=0),
+            self.dir_pin: machine.Pin(self.dir_pin, machine.Pin.OUT, value=0)
         }
             
     def digital_write(self, pin: int, value: int):
@@ -76,7 +76,7 @@ class StepperMotor:
     async def turn(self, degrees: float, time: float, direction: str | bool | int | None = None):
         if degrees:
             steps = math.floor((degrees / 360)*self.steps_per_turn)
-            await self.step_turn(steps, time/steps, direction)
+            await self.step_turn(steps, steps/time, direction)
             return
         else:
             return
@@ -97,11 +97,14 @@ class XYZsystem:
         x_degrees = x * horizontal_conversion_const
         y_degrees = y * horizontal_conversion_const
         z_degrees = z * vertical_conversion_const
+        print([x_degrees, y_degrees, z_degrees, time])
         await asyncio.gather(
-            self.x_motor.turn(x_degrees, time), 
-            self.y_motor.turn(y_degrees, time),
-            self.z_motor.turn(z_degrees, time)
+            self.x_motor.turn(x_degrees, time, 'forward'), 
+            self.y_motor.turn(y_degrees, time, 'forward'),
+            self.z_motor.turn(z_degrees, time, 'forward')
         )
 
-motor1 = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
-asyncio.run(motor1.turn(360, 1))
+x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
+y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
+z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
+
