@@ -1,3 +1,9 @@
+'''
+# printerdriver.py
+ ©2026 Ethan Li
+Micropython firmware for driving stepper motors with the DRV8825 module.
+'''
+
 import asyncio
 import math
 
@@ -5,7 +11,12 @@ import machine  # type: ignore
 
 
 class StepperMotor:
-    def __init__(self, dir_pin: int | str, step_pin: int | str, enable_pin: int | str, steps_per_turn: int = 200):
+    '''
+    # Stepper Motor
+    Stepper Motor Class, configurable with three pins: the **EN** / Enable pin, the **STEP** / Step pin, and the **DIRECTION** / Dir pin.
+    Additional config to change the amount of steps needed for a full rotation: `steps_per_turn`
+    '''
+    def __init__(self, enable_pin: int | str, step_pin: int | str, dir_pin: int | str, steps_per_turn: int = 200):
         self.enable_pin = int(enable_pin)
         self.step_pin = int(step_pin)
         self.dir_pin = int(dir_pin)
@@ -51,7 +62,7 @@ class StepperMotor:
                 self.set_direction(1)
             elif steps < 0:
                 self.set_direction(0)
-                steps = -1*steps
+                steps = -1 * steps
             else:
                 return
             
@@ -71,6 +82,10 @@ class StepperMotor:
             return
 
 class XYZsystem:
+    '''
+    # XYZ System
+    Printer Control System, takes 3 stepper motors as input: `x_motor`, `y_motor`, and `z_motor`, and can be moved arount to any coordinate on the print bed.
+    '''
     def __init__(self, x_motor: StepperMotor, y_motor: StepperMotor, z_motor: StepperMotor):
         self.x_motor = x_motor
         self.y_motor = y_motor
@@ -89,4 +104,4 @@ class XYZsystem:
         )
 
 motor1 = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
-motor1.turn(360, 1)
+asyncio.run(motor1.turn(360, 1))
