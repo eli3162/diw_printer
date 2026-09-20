@@ -6,6 +6,7 @@ Micropython firmware for driving stepper motors with the DRV8825 module.
 
 import asyncio
 import math
+import time
 
 import machine  # type: ignore
 
@@ -17,9 +18,9 @@ class StepperMotor:
     Additional config to change the amount of steps needed for a full rotation: `steps_per_turn`
     '''
     def __init__(self, enable_pin: int | str, step_pin: int | str, dir_pin: int | str, steps_per_turn: int = 200):
-        self.enable_pin = int(enable_pin)
-        self.step_pin = int(step_pin)
-        self.dir_pin = int(dir_pin)
+        self.enable_pin = enable_pin
+        self.step_pin = step_pin
+        self.dir_pin = dir_pin
         self.steps_per_turn = steps_per_turn
         self.control_pins = {
             self.enable_pin: machine.Pin(self.enable_pin, machine.Pin.OUT, value=1),
@@ -57,7 +58,7 @@ class StepperMotor:
         else:
             raise ValueError(f'Invalid Direction: {direction}')
         
-        if direction == None or steps < 0:
+        if direction is None or steps < 0:
             if steps > 0:
                 self.set_direction(1)
             elif steps < 0:
@@ -65,12 +66,13 @@ class StepperMotor:
                 steps = -1 * steps
             else:
                 return
-            
+        self.start()
         self.freq_timer = machine.Timer(-1)
         self.deinit_timer = machine.Timer(-1)
         self.freq_timer.init(mode=machine.Timer.PERIODIC, freq=freq, callback=self.step)
         self.deinit_timer.init(mode=machine.Timer.ONE_SHOT, period=round(1000*steps/freq), callback=self.stop_timer)
         await asyncio.sleep(steps/freq)
+        self.stop()
         return
 
     async def turn(self, degrees: float, time: float, direction: str | bool | int | None = None):
@@ -81,30 +83,78 @@ class StepperMotor:
         else:
             return
 
-class XYZsystem:
+class ThreeAxisSystem:
     '''
-    # XYZ System
-    Printer Control System, takes 3 stepper motors as input: `x_motor`, `y_motor`, and `z_motor`, and can be moved arount to any coordinate on the print bed.
+    # Three Axis System
+    Printer Control System, takes 3 stepper motors as input: `x_motor`, `y_motor`, and `z_motor`, and can be moved around to any coordinate on the print bed.
     '''
     def __init__(self, x_motor: StepperMotor, y_motor: StepperMotor, z_motor: StepperMotor):
         self.x_motor = x_motor
         self.y_motor = y_motor
         self.z_motor = z_motor
+        self.pos = {
+            'x': 0,
+            'y': 0,
+            'z': 0
+        }
+
+    def setpos(self, x=None, y=None, z=None):
+        if x:
+            self.pos['x'] = x
+        if y:
+            self.pos['y'] = y
+        if z:
+            self.pos['z'] = z
+
+    def signed_direction(self, angle):
+        if angle > 0:
+            direction = 1
+        if angle <= 0:
+            direction = 0
+        return [abs(angle), direction]
     
     async def movetorelative(self, time: float, x: float = 0, y: float = 0, z: float = 0):
         horizontal_conversion_const = 360/(16 * math.pi)
         vertical_conversion_const = 360/8
         x_degrees = x * horizontal_conversion_const
         y_degrees = y * horizontal_conversion_const
-        z_degrees = z * vertical_conversion_const
-        print([x_degrees, y_degrees, z_degrees, time])
+        z_degrees = -1 * z * vertical_conversion_const
+
+        [x_degrees, x_direction] = self.signed_direction(x_degrees)
+        [y_degrees, y_direction] = self.signed_direction(y_degrees)
+        [z_degrees, z_direction] = self.signed_direction(z_degrees)
+
         await asyncio.gather(
-            self.x_motor.turn(x_degrees, time, 'forward'), 
-            self.y_motor.turn(y_degrees, time, 'forward'),
-            self.z_motor.turn(z_degrees, time, 'forward')
+            self.x_motor.turn(x_degrees, time, direction=x_direction), 
+            self.y_motor.turn(y_degrees, time, direction=y_direction),
+            self.z_motor.turn(z_degrees, time, direction=z_direction)
         )
+
+    def getpos(self):
+        return (self.pos['x'], self.pos['y'], self.pos['z'])
+
+    async def asyncmovetopoint(self, point, time):
+        [start_x, start_y, start_z] = self.getpos()
+        print(f'Start Vec: {self.getpos()}')
+        [end_x, end_y, end_z] = point
+        print(f'Target Vec: {point}')
+        movement_vector = (end_x - start_x, end_y - start_y, end_z - start_z)
+        [x, y, z] = movement_vector
+        print(f'Movement Vec: {movement_vector}')
+        await self.movetorelative(time, x=x, y=y, z=z)
+        self.setpos(x=end_x, y=end_y, z=end_z)
+
+    def moveto(self, time: float = 0, x: float = 0, y: float = 0, z: float = 0):
+        point = (x, y, z)
+        if time:
+            asyncio.run(self.asyncmovetopoint(point, time))
 
 x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
 y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
 z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
 
+control_system = ThreeAxisSystem(x_motor, y_motor, z_motor)
+
+control_system.moveto(x=10, y=10, z=10, time=1)
+time.sleep(1)
+control_system.moveto(x=0, y=0, z=0, time=1)
