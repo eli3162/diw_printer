@@ -18,7 +18,7 @@ class StepperMotor:
     """
     # Stepper Motor
     Stepper Motor Class, configurable with three pins: the **EN** / Enable pin, the **STEP** / Step pin, and the **DIR** / Direction pin.
-    Additional config to change the amount of steps needed for a full rotation: `steps_per_turn`
+    Additional config to change the amount of steps needed for a <u>full rotation</u>: `steps_per_turn`
     """
 
     def __init__(
@@ -101,7 +101,6 @@ class StepperMotor:
         else:
             return
 
-
 class EndButton:
     def __init__(self, pin):
         self.pin_obj = machine.Pin(pin, machine.Pin.IN, machine.Pin.PULL_UP)
@@ -113,7 +112,6 @@ class EndButton:
             return True
         else:
             raise MachineError("Button Indeterminate state")
-
 
 class ThreeAxisControlSystem:
     """
@@ -192,7 +190,6 @@ class ThreeAxisControlSystem:
         point = (x, y, z)
         if time:
             asyncio.run(self.asyncmovetopoint(point, time))
-
 
 x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
 y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
