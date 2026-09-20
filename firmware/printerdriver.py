@@ -199,16 +199,17 @@ class ThreeAxisControlSystem:
             asyncio.run(self.asyncmovetopoint(point, time))
 
 
-x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
-y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
-z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
-x_button = EndButton(pin=21)
-y_button = EndButton(pin=22)
-z_button = EndButton(pin=26)
+if __name__ == "__main__":
+    x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
+    y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
+    z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
+    x_button = EndButton(pin=21)
+    y_button = EndButton(pin=22)
+    z_button = EndButton(pin=26)
 
-control_system = ThreeAxisControlSystem(
-    x_motor, y_motor, z_motor, x_limit=x_button, y_limit=y_button, z_limit=z_button
-)
+    control_system = ThreeAxisControlSystem(
+        x_motor, y_motor, z_motor, x_limit=x_button, y_limit=y_button, z_limit=z_button
+    )
 
-control_system.moveto(x=75, y=75, z=0, time=0.25)
-control_system.moveto(x=0, y=0, z=0, time=0.25)
+    control_system.moveto(x=75, y=75, z=0, time=1)
+    control_system.moveto(x=0, y=0, z=0, time=1)
