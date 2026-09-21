@@ -190,8 +190,8 @@ class ThreeAxisControlSystem:
         [end_x, end_y, end_z] = point
         movement_vector = (end_x - start_x, end_y - start_y, end_z - start_z)
         [x, y, z] = movement_vector
-        await self.movetorelative(time, x=x, y=y, z=z)
         self.setpos(x=end_x, y=end_y, z=end_z)
+        await self.movetorelative(time, x=x, y=y, z=z)
 
     def moveto(self, time: float = 0, x: float = 0, y: float = 0, z: float = 0):
         point = (x, y, z)
@@ -211,5 +211,7 @@ if __name__ == "__main__":
         x_motor, y_motor, z_motor, x_limit=x_button, y_limit=y_button, z_limit=z_button
     )
 
+    control_system.moveto(x=0, y=75, z=0, time=1)
     control_system.moveto(x=75, y=75, z=0, time=1)
-    control_system.moveto(x=0, y=0, z=0, time=1)
+    control_system.moveto(x=75, y=0, z=0, time=1)
+    control_system.moveto(x=0, y=75, z=0, time=1)
