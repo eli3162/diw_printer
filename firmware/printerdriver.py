@@ -149,12 +149,18 @@ class ThreeAxisControlSystem:
 
         self.pos = {"x": 0, "y": 0, "z": 0}
 
-    def setpos(self, x=None, y=None, z=None):
-        if x:
+    def setpos(
+        self, x: float | None = None, y: float | None = None, z: float | None = None
+    ):
+        """
+        # Set Pos:
+        Set Virtual control system position with optional `x`, `y`, and `z` values
+        """
+        if not x is None:
             self.pos["x"] = x
-        if y:
+        if not y is None:
             self.pos["y"] = y
-        if z:
+        if not z is None:
             self.pos["z"] = z
 
     def signed_direction(self, angle):
@@ -165,38 +171,81 @@ class ThreeAxisControlSystem:
         return [abs(angle), direction]
 
     async def movetorelative(
-        self, time: float, x: float = 0, y: float = 0, z: float = 0
+        self,
+        time: float | None = None,
+        speed: float | None = None,
+        x: float = 0,
+        y: float = 0,
+        z: float = 0,
     ):
+        """
+        # Move to Relative
+        Moves to position `x, y, z` relative to current control coordinates
+        """
         horizontal_conversion_const = 360 / (16 * math.pi)
         vertical_conversion_const = 360 / 8
-        x_degrees = -x * horizontal_conversion_const
-        y_degrees = -y * horizontal_conversion_const
+        x = -x
+        y = -y
+        x_degrees = x * horizontal_conversion_const
+        y_degrees = y * horizontal_conversion_const
         z_degrees = z * vertical_conversion_const
         [x_degrees, x_direction] = self.signed_direction(x_degrees)
         [y_degrees, y_direction] = self.signed_direction(y_degrees)
         [z_degrees, z_direction] = self.signed_direction(z_degrees)
 
+        if time and speed:
+            raise MachineError("User may not choose both time and speed inputs")
+        elif time:
+            runtime = time
+        elif speed:
+            distance = math.sqrt(x**2 + y**2 + z**2)
+            runtime = distance / speed
+        else:
+            raise MachineError("User speed or time not specified")
+
         await asyncio.gather(
-            self.x_motor.turn(x_degrees, time, direction=x_direction),
-            self.y_motor.turn(y_degrees, time, direction=y_direction),
-            self.z_motor.turn(z_degrees, time, direction=z_direction),
+            self.x_motor.turn(x_degrees, runtime, direction=x_direction),
+            self.y_motor.turn(y_degrees, runtime, direction=y_direction),
+            self.z_motor.turn(z_degrees, runtime, direction=z_direction),
         )
 
     def getpos(self):
+        """
+        # Get Pos
+        Get current printer position as tuple: `(x, y, z)`
+        """
         return (self.pos["x"], self.pos["y"], self.pos["z"])
 
-    async def asyncmovetopoint(self, point, time):
+    async def asyncmovetopoint(self, point, time=None, speed=None):
         [start_x, start_y, start_z] = self.getpos()
         [end_x, end_y, end_z] = point
         movement_vector = (end_x - start_x, end_y - start_y, end_z - start_z)
         [x, y, z] = movement_vector
         self.setpos(x=end_x, y=end_y, z=end_z)
-        await self.movetorelative(time, x=x, y=y, z=z)
+        await self.movetorelative(time=time, speed=speed, x=x, y=y, z=z)
 
-    def moveto(self, time: float = 0, x: float = 0, y: float = 0, z: float = 0):
+    def moveto(
+        self,
+        time: float | None = None,
+        speed: float | None = None,
+        x: float = 0,
+        y: float = 0,
+        z: float = 0,
+    ):
+        """
+        # Move To
+        Move to a point on with the control system, use `time` or `speed` as a setting, and optional coordinates `x`, `y`, and `z`.
+        """
         point = (x, y, z)
-        if time:
-            asyncio.run(self.asyncmovetopoint(point, time))
+        if time or speed:
+            asyncio.run(self.asyncmovetopoint(point, time=time, speed=speed))
+
+    def home(self):
+        """
+        # Home
+        Returns to (0, 0, 0) with the control system
+        """
+        self.moveto(speed=100, x=0, y=0, z=0)
 
 
 if __name__ == "__main__":
@@ -211,7 +260,6 @@ if __name__ == "__main__":
         x_motor, y_motor, z_motor, x_limit=x_button, y_limit=y_button, z_limit=z_button
     )
 
-    control_system.moveto(x=0, y=75, z=0, time=1)
-    control_system.moveto(x=75, y=75, z=0, time=1)
-    control_system.moveto(x=75, y=0, z=0, time=1)
-    control_system.moveto(x=0, y=75, z=0, time=1)
+    control_system.moveto(speed=100, x=0, y=75)
+    control_system.moveto(speed=100, x=75, y=75)
+    control_system.home()
