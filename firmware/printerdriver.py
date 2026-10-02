@@ -6,6 +6,7 @@ Micropython firmware for driving stepper motors with the DRV8825 module.
 
 import asyncio
 import math
+import re
 
 import machine  # pyright: ignore[reportMissingImports]
 
@@ -149,6 +150,10 @@ class ThreeAxisControlSystem:
 
         self.pos = {"x": 0, "y": 0, "z": 0}
 
+        self.matchlist = None
+
+        self.gcodeparser = GCodeParser(matchlist=self.matchlist)
+
     def setpos(
         self, x: float | None = None, y: float | None = None, z: float | None = None
     ):
@@ -247,6 +252,75 @@ class ThreeAxisControlSystem:
         """
         self.moveto(speed=100, x=0, y=0, z=0)
 
+    def runcodeline(self, pycode: str):
+        command = pycode["command"]
+        arguments = pycode["args"]
+        if command in "G0":
+            arguments["speed"] = 150
+            self.moveto(**arguments)
+
+    def run_gcode(self, gcode: str | list):
+        parsed_gcode = self.gcodeparser.parse(gcode)
+        if isinstance(parsed_gcode, list):
+            for line in parsed_gcode:
+                self.runcodeline(line)
+        else:
+            self.runcodeline(parsed_gcode)
+
+
+class GCodeParser:
+    def __init__(self, matchlist: dict | None = None):
+        if matchlist:
+            self.matchlist = matchlist
+        else:
+            self.matchlist = {}
+
+    def parseline(self, line: str):
+        if ";" in line:
+            line = line.split(";", 1)[0]
+
+        if "(" in line and ")" in line:
+            line = re.sub(r"\(.*?\)", "", line)
+
+        phrases = line.split(" ")
+        while "" in phrases:
+            phrases.remove("")
+
+        try:
+            if phrases:
+                command = phrases.pop(0).upper()
+                raw_arguments = phrases
+
+                arguments = {}
+                for argument in raw_arguments:
+                    if "'" in argument[1:] or '"' in argument[1:]:
+                        arguments[argument[:1].lower()] = argument[1:]
+                    else:
+                        arguments[argument[:1].lower()] = float(argument[1:])
+
+                if command in self.matchlist:
+                    command = self.matchlist[command]
+
+                return {"command": command, "args": arguments}
+        except Exception:
+            pass
+        return {"command": '', "args": {}}
+
+    def parse(self, inputdata: str | list):
+        if isinstance(inputdata, str):
+            if inputdata.count("\n") > 1:
+                inputdata = inputdata.splitlines()
+            else:
+                return self.parseline(inputdata)
+
+        if isinstance(inputdata, list):
+            output = []
+            for line in inputdata:
+                parsedline = self.parseline(line)
+                if not parsedline == {"command": '', "args": {}}:
+                    output.append(parsedline)
+            return output
+
 
 if __name__ == "__main__":
     x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
@@ -260,6 +334,8 @@ if __name__ == "__main__":
         x_motor, y_motor, z_motor, x_limit=x_button, y_limit=y_button, z_limit=z_button
     )
 
-    control_system.moveto(speed=100, x=0, y=75)
-    control_system.moveto(speed=100, x=75, y=75)
-    control_system.home()
+    gcode = '''
+    G0 X50 (another comment here) y50 z1; comments and stuff (and more comments)
+    '''
+
+    control_system.run_gcode(gcode)

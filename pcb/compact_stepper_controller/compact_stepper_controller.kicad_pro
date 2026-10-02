@@ -675,7 +675,7 @@
         "uuid": "b4effd32-032d-4ce3-89d5-1b15cb2f5ff4"
       }
     ],
-    "used_designators": "U1,SW1-8,R1,A1-7,Q1-3,D2,C1-8,M1,J1-17,12V IN1",
+    "used_designators": "12V IN1,J1-17,M1,C1-8,D2,Q1-3,A1-7,R1,SW1-8,U1",
     "variants": []
   },
   "sheets": [
