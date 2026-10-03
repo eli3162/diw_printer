@@ -102,6 +102,9 @@ class StepperMotor:
         else:
             return
 
+    def turn_step(self, degrees, time, direction):
+        asyncio.run(self.turn(degrees, time, direction=direction))
+
 
 class EndButton:
     """
@@ -304,7 +307,7 @@ class GCodeParser:
                 return {"command": command, "args": arguments}
         except Exception:
             pass
-        return {"command": '', "args": {}}
+        return {"command": "", "args": {}}
 
     def parse(self, inputdata: str | list):
         if isinstance(inputdata, str):
@@ -317,25 +320,11 @@ class GCodeParser:
             output = []
             for line in inputdata:
                 parsedline = self.parseline(line)
-                if not parsedline == {"command": '', "args": {}}:
+                if not parsedline == {"command": "", "args": {}}:
                     output.append(parsedline)
             return output
 
 
 if __name__ == "__main__":
-    x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
-    y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
-    z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
-    x_button = EndButton(pin=21)
-    y_button = EndButton(pin=22)
-    z_button = EndButton(pin=26)
-
-    control_system = ThreeAxisControlSystem(
-        x_motor, y_motor, z_motor, x_limit=x_button, y_limit=y_button, z_limit=z_button
-    )
-
-    gcode = '''
-    G0 X50 (another comment here) y50 z1; comments and stuff (and more comments)
-    '''
-
-    control_system.run_gcode(gcode)
+    motor = StepperMotor(enable_pin=15, step_pin=16, dir_pin=17)
+    motor.turn_step(360, 1, "forward")
