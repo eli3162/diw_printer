@@ -4,7 +4,7 @@
 			"path": ".."
 		},
 		{
-			"name": "Mpy Remote Workspace",
+			"name": "Board Filesystem",
 			"uri": "pico:"
 		}
 	],
