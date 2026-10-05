@@ -7,6 +7,7 @@ Micropython firmware for driving stepper motors with the DRV8825 module.
 import asyncio
 import math
 import re
+import time
 
 import machine  # pyright: ignore[reportMissingImports]
 
@@ -326,5 +327,10 @@ class GCodeParser:
 
 
 if __name__ == "__main__":
-    motor = StepperMotor(enable_pin=15, step_pin=16, dir_pin=17)
-    motor.turn_step(360, 1, "forward")
+    xmotor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
+    ymotor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
+    zmotor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
+    printer = ThreeAxisControlSystem(xmotor, ymotor, zmotor)
+    printer.moveto(x=20, y=20, z=20, speed=20)
+    time.sleep(0.5)
+    printer.moveto(z=0, speed=20)
