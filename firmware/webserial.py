@@ -10,8 +10,9 @@ async def writeSerial(message: str):
 
 
 async def receiveSerial(message):
-    global message_cache
+    global message_cache, last_message
     message_cache.append({"message": message, "time": localtime()})
+    last_message = message
 
 
 window.receiveFromSerial = receiveSerial

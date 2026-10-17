@@ -8,6 +8,7 @@ import asyncio
 import math
 import re
 import gc
+import time
 
 import machine  # pyright: ignore[reportMissingImports]
 
@@ -42,6 +43,7 @@ class StepperMotor:
 
     def digital_write(self, pin: int, value: int):
         self.control_pins[pin].value(value)
+        print(pin, value, time.ticks_ms())
 
     def start(self):
         self.digital_write(self.enable_pin, 0)
@@ -301,7 +303,7 @@ class Printer:
         """
         horizontal_conversion_const = 360 / (16 * math.pi)
         vertical_conversion_const = 360 / 8
-        x = -x
+        x = x
         y = -y
         x_degrees = x * horizontal_conversion_const
         y_degrees = y * horizontal_conversion_const
@@ -413,7 +415,7 @@ class Printer:
         """
         printer = self
         printer.z_motor.turn_step(720 * 2, 4, "forward")
-        printer.x_motor.start_turn(260, "forward")
+        printer.x_motor.start_turn(260, "backward")
         printer.y_motor.start_turn(260, "forward")
         printer.z_motor.start_turn(260, "backward")
 
@@ -466,92 +468,9 @@ if __name__ == "__main__":
     extruder_main = StepperMotor(enable_pin=9, step_pin=10, dir_pin=11)
     extruder_secondary = StepperMotor(enable_pin=12, step_pin=13, dir_pin=14)
     extruder_auxilary = StepperMotor(enable_pin=15, step_pin=16, dir_pin=17)
-    x_button = EndButton(pin=21)
-    y_button = EndButton(pin=22)
-    z_button = EndButton(pin=26)
+    x_button = EndButton(pin=26)
+    y_button = EndButton(pin=21)
+    z_button = EndButton(pin=22)
     printer = Printer(x_motor, y_motor, z_motor, x_button, y_button, z_button)
-    gcode = """
-G90                      ; set absolute positioning mode
-M83                      ; set relative positioning for extruder
-G28                      ; home axes
-G92 X0 Y0 Z0 E0          ; reset all axes positions
-G1 X0 Y0 Z0.25 F180      ; move xy to 0,0 and z 0.25mm over bed
-G92 E0                   ; zero the extruder
-G1 F225                  ; set feed speed
-G1 E-1.5000 F2400 ; e-retract 1.5
-;; --- layer 0 (0.250 @ 0.255) ---
-G1 Z0.2550 F4800
-; feature brim
-G1 X27.4812 Y28.3722
-G1 E1.5000 F2400 ; e-engage 1.5
-G4 P20
-G1 X29.1292 Y26.7242 E0.0951 F1800
-G1 Y0.5703 E1.0675
-G1 X27.4812 Y-1.0777 E0.0951
-G1 X1.3273 E1.0675
-G1 X-0.3208 Y0.5703 E0.0951
-G1 Y26.7242 E1.0675
-G1 X1.3273 Y28.3722 E0.0951
-G1 X27.4812 E1.0675
-G1 X27.3155 Y27.9723 F4800
-G1 X28.7292 Y26.5585 E0.0816 F1800
-G1 Y0.7360 E1.0540
-G1 X27.3155 Y-0.6778 E0.0816
-G1 X1.4930 E1.0540
-G1 X0.0793 Y0.7360 E0.0816
-G1 Y26.5585 E1.0540
-G1 X1.4930 Y27.9723 E0.0816
-G1 X27.3155 E1.0540
-G1 E-1.5000 F2400 ; e-retract 1.5
-G1 Z0.4550 F4800 ; z-hop start
-; start object id: 101
-; feature shells
-M106 S0
-G1 X14.4042 Y23.8301
-G1 Z0.2550 ; z-hop end
-G1 E1.5000 F2400 ; e-engage 1.5
-G4 P20
-G1 X24.5861 Y13.6472 E0.5878 F1800
-G1 X14.4042 Y3.4654 E0.5877
-G1 X4.2224 Y13.6472 E0.5877
-G1 X14.4042 Y23.8301 E0.5878
-G1 Y24.3958 F4800
-G1 X25.1517 Y13.6472 E0.6204 F1800
-G1 X14.4042 Y2.8997 E0.6204
-G1 X3.6567 Y13.6472 E0.6204
-G1 X14.4042 Y24.3958 E0.6204
-G1 X14.2150 Y24.7722 F4800
-G1 X3.2792 Y13.8354 E0.6313 F1800
-G1 Y24.7722 E0.4464
-G1 X14.2150 E0.4464
-G1 X2.8792 Y25.1722 F4800
-G1 X25.9292 E0.9408 F1800
-G1 Y2.1223 E0.9408
-G1 X2.8792 E0.9408
-G1 Y25.1722 E0.9408
-G1 X2.4792 Y25.5644 F4800
-G1 X2.4871 Y25.5723 E0.0005 F1800
-G1 X26.3214 E0.9728
-G1 X26.3292 Y25.5644 E0.0005
-G1 Y1.7301 E0.9728
-G1 X26.3214 Y1.7222 E0.0005
-G1 X2.4871 E0.9728
-G1 X2.4792 Y1.7301 E0.0005
-G1 Y25.5644 E0.9728
-G1 X14.5935 Y24.7722 F4800
-G1 X25.5292 E0.4464 F1800
-G1 Y13.8354 E0.4464
-G1 X14.5935 Y24.7722 E0.6313
-G1 X3.2792 Y13.4590 F4800
-G1 X14.2160 Y2.5222 E0.6313 F1800
-G1 X3.2792 E0.4464
-G1 Y13.4590 E0.4464
-G1 X14.5925 Y2.5222 F4800
-G1 X25.5292 Y13.4590 E0.6313 F1800
-G1 Y2.5222 E0.4464
-G1 X14.5925 E0.4464
-; feature solid fill
-G1 X15.6526 Y2.7823 F4800
-G1 X25.2692 Y12.3989 E0.6939 F2100
-"""
-    printer.run_gcode(gcode)
+
+    asyncio.run(printer.z_motor.step_turn(280*10, 10, 0))

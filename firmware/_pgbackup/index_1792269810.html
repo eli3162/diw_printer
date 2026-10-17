@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" style="color: #ffffff; background-color: #333333; background: linear-gradient(268deg, #444444 0%, #535353 100%); background-attachment: scroll;">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Printer Dashboard</title>
+        <script src="./script/webserial.js"></script>
+        <script src="./mini-coi-fd.js"></script>
+        <meta name="viewport" content="width=device-width,initial-scale=1"/>
+        <link rel="icon" type="image/png" href="./assets/favicon-96x96.png" sizes="96x96"/>
+        <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg"/>
+        <link rel="shortcut icon" href="./favicon.ico"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png"/>
+        <meta name="apple-mobile-web-app-title" content="Printer Control"/>
+        <link rel="manifest" href="./manifest.json">
+        <script type="module" src="./pyscript/core.js" offline></script>
+        <link rel="stylesheet" href="./pyscript/core.css">
+    </head>
+    <body>
+        <header style="box-shadow: #999999; outline: 1px solid #cccccc; background-color: #949494; background: linear-gradient(90deg, #232526, #414345); border-radius: 15px;">
+            <button data-pg-name="connect-button" title="Connect" id="connect" style="color: #ffffff; font-variant: small-caps; text-align: center; overflow: hidden; float: none; box-sizing: border-box; background-color: #bdbdbd; background-position: left center; font-style: normal; text-transform: capitalize; font-size: 15px; width: 10%; height: 25px; margin: 5px 45%; border-radius: 5px; background: linear-gradient(90deg, #434343, #3c3c3c);">Connect</button>
+        </header>
+        <br>
+        <script type="mpy" src="./main.py" terminal></script>
+    </body>
+</html>
