@@ -6,6 +6,8 @@ from js import console # type: ignore
 def timenow():
     return time.ticks_us()
 
+log_to_terminal = False
+
 
 message_cache = []
 last_message = None
@@ -23,7 +25,7 @@ async def writeSerial(message: str):
 
 
 async def receiveSerial(message):
-    global message_cache, last_message, log_cache, last_log
+    global message_cache, last_message, log_cache, last_log, log_to_terminal
     if message.startswith("send:"):
         message = message[5:]
         message_cache.append({"message": message, "time": timenow()})
@@ -33,6 +35,8 @@ async def receiveSerial(message):
     elif not message is None:
         log_cache.append({"message": message, "time": timenow()})
         console.log(message)
+        if log_to_terminal:
+            print(f'Log: {message}')
         last_log = message
 
 
@@ -60,7 +64,5 @@ async def gcode_handler(event):
 
 @when("click", "#py-input")
 async def py_handler(event):
-    python = document.getElementById("py-upload").value
+    python = (document.getElementById("py-upload").value).strip() + '\n'
     await writeSerial(python)
-    
-
