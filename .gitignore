@@ -1,10 +1,9 @@
 *.lck
-pcb/.history/
+pcb/.history
 pcb/.DS_Store
 .DS_Store
 pcb/compact_stepper_controller/.history
-pcb/compact_stepper_controller/.history/
-firmware/_pgbackup/
+firmware/_pgbackup
 firmware/pinegrow.json
 firmware/.ruff_cache
 firmware/__pycache__
