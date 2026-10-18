@@ -7,7 +7,7 @@
     "orientation": "any",
     "scope": "./",
     "start_url": "./",
-    "description": "Dashboard for Ethan's DIW Printer",
+    "description": "Dashboard for Custom DIW Printer",
     "icons": [
         {
             "src": "./assets/web-app-manifest-192x192.png",
