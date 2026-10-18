@@ -17,6 +17,7 @@ last_log = None
 starting_command = """
 import os
 writeSerial(os.uname().machine + '; ' + os.uname().version)
+printer = printerdriver.initPrinter()
 """
 
 
@@ -60,7 +61,9 @@ async def disconnect_handler(event):
 @when("click", "#gcode-input")
 async def gcode_handler(event):
     gcode = document.getElementById("gcode-upload").value
-    print(gcode)
+    payload = f'printer.run_gcode("""{gcode}""")'
+    print(payload)
+    await writeSerial(payload)
 
 @when("click", "#py-input")
 async def py_handler(event):
