@@ -473,4 +473,3 @@ if __name__ == "__main__":
     z_button = EndButton(pin=22)
     printer = Printer(x_motor, y_motor, z_motor, x_button, y_button, z_button)
 
-    asyncio.run(printer.z_motor.step_turn(280*10, 10, 0))
