@@ -4,18 +4,10 @@
 Micropython firmware for driving stepper motors with the DRV8825 module.
 """
 
-import asyncio
-import math
-import re
-import gc
-import time
-
-import machine  # pyright: ignore[reportMissingImports]
-
+import asyncio, math, re, gc, time, machine # pyright: ignore[reportMissingImports]
 
 class MachineError(Exception):
     """Base Class for Physical Machine based Errors"""
-
 
 class StepperMotor:
     """
@@ -177,7 +169,6 @@ class EndButton:
         else:
             return False
 
-
 class GCodeParser:
     def __init__(self, matchlist: dict | None = None):
         if matchlist:
@@ -231,7 +222,6 @@ class GCodeParser:
                     output.append(parsedline)
             return output
 
-
 class Printer:
     """
     # Printer
@@ -246,6 +236,9 @@ class Printer:
         x_limit: EndButton = None,
         y_limit: EndButton = None,
         z_limit: EndButton = None,
+        main_extruder: Extruder = None,
+        secondary_extruder: Extruder = None,
+        auxilarry_extruder: Extruder = None
     ):
         self.x_motor = x_motor
         self.y_motor = y_motor
@@ -259,12 +252,16 @@ class Printer:
         if z_limit:
             self.z_limit = z_limit
 
+        if main_extruder or secondary_extruder or auxilarry_extruder:
+            self.extruder_set = {
+                'main': main_extruder,
+                'secondary': secondary_extruder,
+                'auxilarry': auxilarry_extruder
+            }
+
         self.pos = {"x": 0, "y": 0, "z": 0}
-
         self.matchlist = None
-
         self.gcodeparser = GCodeParser(matchlist=self.matchlist)
-
         self.last_feed_rate = 0
 
     def setpos(
@@ -441,35 +438,48 @@ class Printer:
 
 class Extruder:
     """
-    # Printer
-    Printer Control System, takes 3 stepper motors as input: `x_motor`, `y_motor`, and `z_motor`, 3 optional end button inputs as `x_limit`, `y_limit`, and `z_limit`, and can be moved around to any coordinate on the print bed.
+    # Extruder
+    Extruder Class object, takes input of extrusion ratio: `ratio` as `int | float` and extuder motor: `extuder_motor` as class `StepperMotor`
     """
 
-    def __init__(self, extruder_motor: StepperMotor):
+    def __init__(self, extruder_motor: StepperMotor, ratio: int | float = 1):
         self.extruder_motor = extruder_motor
+        self.extrude_ratio = ratio
 
     async def extrude(
         self, mm: float, time: float, direction: str | bool | int | None = None
     ):
         if mm:
             degrees = None
-            steps = math.floor((degrees / 360) * self.steps_per_turn)
+            steps = math.floor(((degrees / 360) * self.steps_per_turn)*self.extrude_ratio)
             await self.step_turn(steps, steps / time, direction)
             return
         else:
             return
 
-
 def initPrinter():
+    '''
+    # initPrinter
+    initPrinter() initializes a default printer configaration, and returns a `Printer` control object.
+    '''
+    pins = {
+        'x_motor': {'en' = 0, 'step' = 1, 'dir' = 2},
+        'y_motor': {'en' = 3, 'step' = 4, 'dir' = 5},
+        'z_motor': {'en' = 6, 'step' = 7, 'dir' = 8},
+        'x_limit': {'pin' = 21},
+    }
     x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
     y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
     z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
-    extruder_main = StepperMotor(enable_pin=9, step_pin=10, dir_pin=11)
-    extruder_secondary = StepperMotor(enable_pin=12, step_pin=13, dir_pin=14)
-    extruder_auxilary = StepperMotor(enable_pin=15, step_pin=16, dir_pin=17)
-    x_button = EndButton(pin=26)
-    y_button = EndButton(pin=21)
-    z_button = EndButton(pin=22)
+    extruder_main_motor = StepperMotor(enable_pin=9, step_pin=10, dir_pin=11)
+    extruder_secondary_motor = StepperMotor(enable_pin=12, step_pin=13, dir_pin=14)
+    extruder_auxilary_motor = StepperMotor(enable_pin=15, step_pin=16, dir_pin=17)
+    extuder_main = Extruder(extruder_main_motor, ratio=1)
+    extuder_secondary = Extruder(extruder_main_motor, ratio=1)
+    extuder_auxilary = Extruder(extruder_main_motor, ratio=1)
+    x_button = EndButton(pin=21)
+    y_button = EndButton(pin=22)
+    z_button = EndButton(pin=26)
     printer = Printer(x_motor, y_motor, z_motor, x_button, y_button, z_button)
     return printer
     
