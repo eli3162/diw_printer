@@ -401,7 +401,6 @@ class Printer:
         if isinstance(parsed_gcode, list):
             for line in parsed_gcode:
                 self.runcodeline(line)
-                gc.collect()
         else:
             self.runcodeline(parsed_gcode)
 
@@ -457,23 +456,41 @@ class Extruder:
         else:
             return
 
-def initPrinter():
+def initPrinter(setpins: dict = None):
     '''
     # initPrinter
-    initPrinter() initializes a default printer configaration, and returns a `Printer` control object.
+    initPrinter() initializes a default printer configaration, and returns a `Printer` control object. Can **optionally** specify PIN CONFIGARATION:
+    Default Pin config: 
+    ```
+        pins = {
+            'x_motor': {'en' = 0, 'step' = 1, 'dir' = 2},
+            'y_motor': {'en' = 3, 'step' = 4, 'dir' = 5},
+            'z_motor': {'en' = 6, 'step' = 7, 'dir' = 8},
+            'extruder_main_motor': {'en' = 9, 'step' = 10, 'dir' = 11},
+            'extruder_secondary_motor': {'en' = 12, 'step' = 13, 'dir' = 14},
+            'extruder_auxilarry_motor': {'en' = 15, 'step' = 16, 'dir' = 17},
+            'x_limit': {'pin' = 21},
+            'y_limit': {'pin' = 22},
+            'z_limit': {'pin' = 26},
+            'aux': {'sda': 23, 'scl': 24, 'pwm': 25}
+        }
+    ```
     '''
-    pins = {
-        'x_motor': {'en' = 0, 'step' = 1, 'dir' = 2},
-        'y_motor': {'en' = 3, 'step' = 4, 'dir' = 5},
-        'z_motor': {'en' = 6, 'step' = 7, 'dir' = 8},
-        'extruder_main_motor': {'en' = 9, 'step' = 10, 'dir' = 11},
-        'extruder_secondary_motor': {'en' = 12, 'step' = 13, 'dir' = 14},
-        'extruder_auxilarry_motor': {'en' = 15, 'step' = 16, 'dir' = 17},
-        'x_limit': {'pin' = 21},
-        'y_limit': {'pin' = 22},
-        'z_limit': {'pin' = 26},
-        'aux': 
-    }
+    if not setpins is None:
+        pins = setpins
+    else:
+        pins = {
+            'x_motor': {'en' = 0, 'step' = 1, 'dir' = 2},
+            'y_motor': {'en' = 3, 'step' = 4, 'dir' = 5},
+            'z_motor': {'en' = 6, 'step' = 7, 'dir' = 8},
+            'extruder_main_motor': {'en' = 9, 'step' = 10, 'dir' = 11},
+            'extruder_secondary_motor': {'en' = 12, 'step' = 13, 'dir' = 14},
+            'extruder_auxilarry_motor': {'en' = 15, 'step' = 16, 'dir' = 17},
+            'x_limit': {'pin' = 21},
+            'y_limit': {'pin' = 22},
+            'z_limit': {'pin' = 26},
+            'aux': {'sda': 23, 'scl': 24, 'pwm': 25}
+        }
     x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
     y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
     z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
