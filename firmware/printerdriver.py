@@ -43,7 +43,6 @@ class StepperMotor:
 
     def digital_write(self, pin: int, value: int):
         self.control_pins[pin].value(value)
-        print(pin, value, time.ticks_ms())
 
     def start(self):
         self.digital_write(self.enable_pin, 0)
@@ -461,7 +460,7 @@ class Extruder:
             return
 
 
-if __name__ == "__main__":
+def initPrinter():
     x_motor = StepperMotor(enable_pin=0, step_pin=1, dir_pin=2)
     y_motor = StepperMotor(enable_pin=3, step_pin=4, dir_pin=5)
     z_motor = StepperMotor(enable_pin=6, step_pin=7, dir_pin=8)
@@ -472,4 +471,6 @@ if __name__ == "__main__":
     y_button = EndButton(pin=21)
     z_button = EndButton(pin=22)
     printer = Printer(x_motor, y_motor, z_motor, x_button, y_button, z_button)
+    return printer
+    
 
