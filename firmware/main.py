@@ -2,13 +2,10 @@ import time
 from pyscript import when, window, document
 from js import console # type: ignore
 
-
 def timenow():
     return time.ticks_us()
 
 log_to_terminal = False
-
-
 message_cache = []
 last_message = None
 log_cache = []
@@ -19,7 +16,6 @@ import os
 writeSerial(os.uname().machine + '; ' + os.uname().version)
 printer = printerdriver.initPrinter()
 """
-
 
 async def writeSerial(message: str):
     await window.writeSerial(str(message))
@@ -40,13 +36,10 @@ async def receiveSerial(message):
             print(f'Log: {message}')
         last_log = message
 
-
 window.receiveFromSerial = receiveSerial
-
 
 async def connectSerial():
     await window.connectSerial()
-
 
 @when("click", "#connect")
 async def connect_handler(event):
@@ -62,7 +55,7 @@ async def disconnect_handler(event):
 async def gcode_handler(event):
     gcode = document.getElementById("gcode-upload").value
     payload = f'printer.run_gcode("""{gcode}""")'
-    print(payload)
+    print(f'GCode payload: {payload}')
     await writeSerial(payload)
 
 @when("click", "#py-input")
