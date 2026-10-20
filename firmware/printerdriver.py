@@ -501,8 +501,8 @@ def initPrinter(setpins: dict = None):
     extruder_auxilarry_motor = StepperMotor(enable_pin=pins['extruder_auxilarry']['en'], step_pin=pins['extruder_auxilarry']['step'], dir_pin=pins['extruder_auxilarry']['dir'])
  
     extuder_main = Extruder(extruder_main_motor, ratio=pins['extruder_main']['ratio'])
-    extuder_secondary = Extruder(extruder_main_motor, ratio=pins['extruder_secondary']['ratio'])
-    extuder_auxilarry = Extruder(extruder_main_motor, ratio=pins['extruder_auxilarry']['ratio'])
+    extuder_secondary = Extruder(extruder_secondary_motor, ratio=pins['extruder_secondary']['ratio'])
+    extuder_auxilarry = Extruder(extruder_auxilarry_motor, ratio=pins['extruder_auxilarry']['ratio'])
  
     x_button = EndButton(pin=pins['x_limit']['pin'])
     y_button = EndButton(pin=pins['y_limit']['pin'])
