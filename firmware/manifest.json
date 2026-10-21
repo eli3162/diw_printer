@@ -3,7 +3,7 @@
   "short_name": "Printer",
   "theme_color": "#bababa",
   "background_color": "#707070",
-  "display": "minimal-ui",
+  "display": "standalone",
   "orientation": "any",
   "scope": "./",
   "start_url": "./",
@@ -21,7 +21,6 @@
     }
   ],
   "id": "diwprinterdashboard",
-  "dir": "ltr",
   "lang": "en",
   "shortcuts": [
     {
