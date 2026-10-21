@@ -4,10 +4,12 @@
 Micropython firmware for driving stepper motors with the DRV8825 module.
 """
 
-import asyncio, math, re, gc, time, machine # pyright: ignore[reportMissingImports]
+import asyncio, math, re, gc, time, machine  # pyright: ignore[reportMissingImports]
+
 
 class MachineError(Exception):
     """Base Class for Physical Machine based Errors"""
+
 
 class StepperMotor:
     """
@@ -169,6 +171,7 @@ class EndButton:
         else:
             return False
 
+
 class GCodeParser:
     def __init__(self, matchlist: dict | None = None):
         if matchlist:
@@ -222,6 +225,7 @@ class GCodeParser:
                     output.append(parsedline)
             return output
 
+
 class Printer:
     """
     # Printer
@@ -238,7 +242,7 @@ class Printer:
         z_limit: EndButton = None,
         main_extruder: Extruder = None,
         secondary_extruder: Extruder = None,
-        auxilarry_extruder: Extruder = None
+        auxilarry_extruder: Extruder = None,
     ):
         self.x_motor = x_motor
         self.y_motor = y_motor
@@ -254,9 +258,9 @@ class Printer:
 
         if main_extruder or secondary_extruder or auxilarry_extruder:
             self.extruder_set = {
-                'main': main_extruder,
-                'secondary': secondary_extruder,
-                'auxilarry': auxilarry_extruder
+                "main": main_extruder,
+                "secondary": secondary_extruder,
+                "auxilarry": auxilarry_extruder,
             }
 
         self.pos = {"x": 0, "y": 0, "z": 0}
@@ -388,8 +392,8 @@ class Printer:
             self.hone_axis()
 
         elif command in "G92":
-            if 'e' in arguments:
-                arguments.pop('e')
+            if "e" in arguments:
+                arguments.pop("e")
 
             self.setpos(**arguments)
 
@@ -450,17 +454,20 @@ class Extruder:
     ):
         if mm:
             degrees = None
-            steps = math.floor(((degrees / 360) * self.steps_per_turn)*self.extrude_ratio)
+            steps = math.floor(
+                ((degrees / 360) * self.steps_per_turn) * self.extrude_ratio
+            )
             await self.step_turn(steps, steps / time, direction)
             return
         else:
             return
 
+
 def initPrinter(setpins: dict = None):
-    '''
+    """
     # initPrinter
     initPrinter() initializes a default printer configaration, and returns a `Printer` control object. Can **optionally** specify PIN CONFIGARATION:
-    Default Pin config: 
+    Default Pin config:
     ```
         pins = {
             'x_motor': {'en': 0, 'step': 1, 'dir': 2},
@@ -475,40 +482,76 @@ def initPrinter(setpins: dict = None):
             'aux': {'sda': 23, 'scl': 24, 'pwm': 25}
         }
     ```
-    '''
+    """
     if not setpins is None:
         pins = setpins
     else:
         pins = {
-            'x_motor': {'en': 0, 'step': 1, 'dir': 2},
-            'y_motor': {'en': 3, 'step': 4, 'dir': 5},
-            'z_motor': {'en': 6, 'step': 7, 'dir': 8},
-            'extruder_main': {'en': 9, 'step': 10, 'dir': 11, 'ratio': 1},
-            'extruder_secondary': {'en': 12, 'step': 13, 'dir': 14, 'ratio': 1},
-            'extruder_auxilarry': {'en': 15, 'step': 16, 'dir': 17, 'ratio': 1},
-            'x_limit': {'pin': 21},
-            'y_limit': {'pin': 22},
-            'z_limit': {'pin': 26},
-            'aux': {'sda': 23, 'scl': 24, 'pwm': 25}
+            "x_motor": {"en": 0, "step": 1, "dir": 2},
+            "y_motor": {"en": 3, "step": 4, "dir": 5},
+            "z_motor": {"en": 6, "step": 7, "dir": 8},
+            "extruder_main": {"en": 9, "step": 10, "dir": 11, "ratio": 1},
+            "extruder_secondary": {"en": 12, "step": 13, "dir": 14, "ratio": 1},
+            "extruder_auxilarry": {"en": 15, "step": 16, "dir": 17, "ratio": 1},
+            "x_limit": {"pin": 21},
+            "y_limit": {"pin": 22},
+            "z_limit": {"pin": 26},
+            "aux": {"sda": 23, "scl": 24, "pwm": 25},
         }
-    
-    x_motor = StepperMotor(enable_pin=pins['x_motor']['en'], step_pin=pins['x_motor']['step'], dir_pin=pins['x_motor']['dir'])
-    y_motor = StepperMotor(enable_pin=pins['y_motor']['en'], step_pin=pins['y_motor']['step'], dir_pin=pins['y_motor']['dir'])
-    z_motor = StepperMotor(enable_pin=pins['z_motor']['en'], step_pin=pins['z_motor']['step'], dir_pin=pins['z_motor']['dir'])
- 
-    extruder_main_motor = StepperMotor(enable_pin=pins['extruder_main']['en'], step_pin=pins['extruder_main']['step'], dir_pin=pins['extruder_main']['dir'])
-    extruder_secondary_motor = StepperMotor(enable_pin=pins['extruder_secondary']['en'], step_pin=pins['extruder_secondary']['step'], dir_pin=pins['extruder_secondary']['dir'])
-    extruder_auxilarry_motor = StepperMotor(enable_pin=pins['extruder_auxilarry']['en'], step_pin=pins['extruder_auxilarry']['step'], dir_pin=pins['extruder_auxilarry']['dir'])
- 
-    extruder_main = Extruder(extruder_main_motor, ratio=pins['extruder_main']['ratio'])
-    extruder_secondary = Extruder(extruder_secondary_motor, ratio=pins['extruder_secondary']['ratio'])
-    extruder_auxilarry = Extruder(extruder_auxilarry_motor, ratio=pins['extruder_auxilarry']['ratio'])
- 
-    x_button = EndButton(pin=pins['x_limit']['pin'])
-    y_button = EndButton(pin=pins['y_limit']['pin'])
-    z_button = EndButton(pin=pins['z_limit']['pin'])
- 
-    printer = Printer(x_motor, y_motor, z_motor, x_button, y_button, z_button, extruder_main, extruder_secondary, extruder_auxilarry)
-    return printer
-    
 
+    x_motor = StepperMotor(
+        enable_pin=pins["x_motor"]["en"],
+        step_pin=pins["x_motor"]["step"],
+        dir_pin=pins["x_motor"]["dir"],
+    )
+    y_motor = StepperMotor(
+        enable_pin=pins["y_motor"]["en"],
+        step_pin=pins["y_motor"]["step"],
+        dir_pin=pins["y_motor"]["dir"],
+    )
+    z_motor = StepperMotor(
+        enable_pin=pins["z_motor"]["en"],
+        step_pin=pins["z_motor"]["step"],
+        dir_pin=pins["z_motor"]["dir"],
+    )
+
+    extruder_main_motor = StepperMotor(
+        enable_pin=pins["extruder_main"]["en"],
+        step_pin=pins["extruder_main"]["step"],
+        dir_pin=pins["extruder_main"]["dir"],
+    )
+    extruder_secondary_motor = StepperMotor(
+        enable_pin=pins["extruder_secondary"]["en"],
+        step_pin=pins["extruder_secondary"]["step"],
+        dir_pin=pins["extruder_secondary"]["dir"],
+    )
+    extruder_auxilarry_motor = StepperMotor(
+        enable_pin=pins["extruder_auxilarry"]["en"],
+        step_pin=pins["extruder_auxilarry"]["step"],
+        dir_pin=pins["extruder_auxilarry"]["dir"],
+    )
+
+    extruder_main = Extruder(extruder_main_motor, ratio=pins["extruder_main"]["ratio"])
+    extruder_secondary = Extruder(
+        extruder_secondary_motor, ratio=pins["extruder_secondary"]["ratio"]
+    )
+    extruder_auxilarry = Extruder(
+        extruder_auxilarry_motor, ratio=pins["extruder_auxilarry"]["ratio"]
+    )
+
+    x_button = EndButton(pin=pins["x_limit"]["pin"])
+    y_button = EndButton(pin=pins["y_limit"]["pin"])
+    z_button = EndButton(pin=pins["z_limit"]["pin"])
+
+    printer = Printer(
+        x_motor,
+        y_motor,
+        z_motor,
+        x_button,
+        y_button,
+        z_button,
+        extruder_main,
+        extruder_secondary,
+        extruder_auxilarry,
+    )
+    return printer
