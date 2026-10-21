@@ -413,30 +413,7 @@ class Printer:
         Uses Limitswitches to hone axis to origin
         """
         printer = self
-        printer.z_motor.turn_step(720 * 2, 4, "forward")
-        printer.x_motor.start_turn(260, "backward")
-        printer.y_motor.start_turn(260, "forward")
-        printer.z_motor.start_turn(260, "backward")
-
-        x_calib, y_calib, z_calib = False, False, False
-
-        while not x_calib or not y_calib or not z_calib:
-            if printer.x_limit.state():
-                x_calib = True
-                printer.x_motor.stop_turn()
-
-            if printer.y_limit.state():
-                y_calib = True
-                printer.y_motor.stop_turn()
-
-            if printer.z_limit.state():
-                z_calib = True
-                printer.z_motor.stop_turn()
-
-        asyncio.run(printer.movetorelative(time=2, z=20))
-        asyncio.run(printer.movetorelative(time=2, x=50, y=50))
-        asyncio.run(printer.movetorelative(time=5, z=-20))
-        printer.setpos(x=0, y=0, z=0)
+        # \\ TODO !
 
 
 class Extruder:
