@@ -462,33 +462,33 @@ def initPrinter(setpins: dict = None):
     initPrinter() initializes a default printer configaration, and returns a `Printer` control object. Can **optionally** specify PIN CONFIGARATION:
     Default Pin config: 
     ```
-    pins = {
-            'x_motor': {'en' = 0, 'step' = 1, 'dir' = 2},
-            'y_motor': {'en' = 3, 'step' = 4, 'dir' = 5},
-            'z_motor': {'en' = 6, 'step' = 7, 'dir' = 8},
-            'extruder_main': {'en' = 9, 'step' = 10, 'dir' = 11, 'ratio' = 1},
-            'extruder_secondary': {'en' = 12, 'step' = 13, 'dir' = 14, 'ratio' = 1},
-            'extruder_auxilarry': {'en' = 15, 'step' = 16, 'dir' = 17, 'ratio' = 1},
-            'x_limit': {'pin' = 21},
-            'y_limit': {'pin' = 22},
-            'z_limit': {'pin' = 26},
+        pins = {
+            'x_motor': {'en': 0, 'step': 1, 'dir': 2},
+            'y_motor': {'en': 3, 'step': 4, 'dir': 5},
+            'z_motor': {'en': 6, 'step': 7, 'dir': 8},
+            'extruder_main': {'en': 9, 'step': 10, 'dir': 11, 'ratio': 1},
+            'extruder_secondary': {'en': 12, 'step': 13, 'dir': 14, 'ratio': 1},
+            'extruder_auxilarry': {'en': 15, 'step': 16, 'dir': 17, 'ratio': 1},
+            'x_limit': {'pin': 21},
+            'y_limit': {'pin': 22},
+            'z_limit': {'pin': 26},
             'aux': {'sda': 23, 'scl': 24, 'pwm': 25}
-    }
+        }
     ```
     '''
     if not setpins is None:
         pins = setpins
     else:
         pins = {
-            'x_motor': {'en' = 0, 'step' = 1, 'dir' = 2},
-            'y_motor': {'en' = 3, 'step' = 4, 'dir' = 5},
-            'z_motor': {'en' = 6, 'step' = 7, 'dir' = 8},
-            'extruder_main': {'en' = 9, 'step' = 10, 'dir' = 11, 'ratio' = 1},
-            'extruder_secondary': {'en' = 12, 'step' = 13, 'dir' = 14, 'ratio' = 1},
-            'extruder_auxilarry': {'en' = 15, 'step' = 16, 'dir' = 17, 'ratio' = 1},
-            'x_limit': {'pin' = 21},
-            'y_limit': {'pin' = 22},
-            'z_limit': {'pin' = 26},
+            'x_motor': {'en': 0, 'step': 1, 'dir': 2},
+            'y_motor': {'en': 3, 'step': 4, 'dir': 5},
+            'z_motor': {'en': 6, 'step': 7, 'dir': 8},
+            'extruder_main': {'en': 9, 'step': 10, 'dir': 11, 'ratio': 1},
+            'extruder_secondary': {'en': 12, 'step': 13, 'dir': 14, 'ratio': 1},
+            'extruder_auxilarry': {'en': 15, 'step': 16, 'dir': 17, 'ratio': 1},
+            'x_limit': {'pin': 21},
+            'y_limit': {'pin': 22},
+            'z_limit': {'pin': 26},
             'aux': {'sda': 23, 'scl': 24, 'pwm': 25}
         }
     
@@ -500,9 +500,9 @@ def initPrinter(setpins: dict = None):
     extruder_secondary_motor = StepperMotor(enable_pin=pins['extruder_secondary']['en'], step_pin=pins['extruder_secondary']['step'], dir_pin=pins['extruder_secondary']['dir'])
     extruder_auxilarry_motor = StepperMotor(enable_pin=pins['extruder_auxilarry']['en'], step_pin=pins['extruder_auxilarry']['step'], dir_pin=pins['extruder_auxilarry']['dir'])
  
-    extuder_main = Extruder(extruder_main_motor, ratio=pins['extruder_main']['ratio'])
-    extuder_secondary = Extruder(extruder_secondary_motor, ratio=pins['extruder_secondary']['ratio'])
-    extuder_auxilarry = Extruder(extruder_auxilarry_motor, ratio=pins['extruder_auxilarry']['ratio'])
+    extruder_main = Extruder(extruder_main_motor, ratio=pins['extruder_main']['ratio'])
+    extruder_secondary = Extruder(extruder_secondary_motor, ratio=pins['extruder_secondary']['ratio'])
+    extruder_auxilarry = Extruder(extruder_auxilarry_motor, ratio=pins['extruder_auxilarry']['ratio'])
  
     x_button = EndButton(pin=pins['x_limit']['pin'])
     y_button = EndButton(pin=pins['y_limit']['pin'])
