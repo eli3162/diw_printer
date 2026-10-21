@@ -53,7 +53,7 @@
       "board_outline_area",
       "ly_points"
     ],
-    "visible_layers": "ffffffff_ffffffff_ffffffff_7fffffaa",
+    "visible_layers": "ffffffff_ffffffff_ffffffff_7fffffff",
     "zone_display_mode": 0
   },
   "git": {
@@ -107,7 +107,7 @@
       103,
       103,
       103,
-      0
+      42
     ],
     "custom_group_rules": [],
     "expanded_rows": [],
