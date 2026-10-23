@@ -4,7 +4,11 @@
 Micropython firmware for driving stepper motors with the DRV8825 module.
 """
 
-import asyncio, math, re, gc, time, machine  # pyright: ignore[reportMissingImports]
+import asyncio  # pyright: ignore[reportMissingImports]
+import math
+import re
+
+import machine
 
 
 class MachineError(Exception):
@@ -166,10 +170,7 @@ class EndButton:
         """
         if self.pin_obj.value() == 0:
             return False
-        elif self.pin_obj.value() == 1:
-            return True
-        else:
-            return False
+        return self.pin_obj.value() == 1
 
 
 class GCodeParser:
@@ -221,9 +222,33 @@ class GCodeParser:
             output = []
             for line in inputdata:
                 parsedline = self.parseline(line)
-                if not parsedline == {"command": "", "args": {}}:
+                if parsedline != {"command": "", "args": {}}:
                     output.append(parsedline)
             return output
+
+
+class Extruder:
+    """
+    # Extruder
+    Extruder Class object, takes input of extrusion ratio: `ratio` as `int | float` and extuder motor: `extuder_motor` as class `StepperMotor`
+    """
+
+    def __init__(self, extruder_motor: StepperMotor, ratio: float = 1):
+        self.extruder_motor = extruder_motor
+        self.extrude_ratio = ratio
+
+    async def extrude(
+        self, mm: float, time: float, direction: str | bool | int | None = None
+    ):
+        if mm:
+            degrees = None
+            steps = math.floor(
+                ((degrees / 360) * self.steps_per_turn) * self.extrude_ratio
+            )
+            await self.step_turn(steps, steps / time, direction)
+            return
+        else:
+            return
 
 
 class Printer:
@@ -262,6 +287,12 @@ class Printer:
                 "secondary": secondary_extruder,
                 "auxilarry": auxilarry_extruder,
             }
+
+        [self.main_extruder, self.secondary_extruder, self.auxillary_extruder] = (
+            main_extruder,
+            secondary_extruder,
+            auxilarry_extruder,
+        )
 
         self.pos = {"x": 0, "y": 0, "z": 0}
         self.matchlist = None
@@ -303,7 +334,6 @@ class Printer:
         """
         horizontal_conversion_const = 360 / (16 * math.pi)
         vertical_conversion_const = 360 / 8
-        x = x
         y = -y
         x_degrees = x * horizontal_conversion_const
         y_degrees = y * horizontal_conversion_const
@@ -412,35 +442,10 @@ class Printer:
         """
         Uses Limitswitches to hone axis to origin
         """
-        printer = self
         # \\ TODO !
 
 
-class Extruder:
-    """
-    # Extruder
-    Extruder Class object, takes input of extrusion ratio: `ratio` as `int | float` and extuder motor: `extuder_motor` as class `StepperMotor`
-    """
-
-    def __init__(self, extruder_motor: StepperMotor, ratio: int | float = 1):
-        self.extruder_motor = extruder_motor
-        self.extrude_ratio = ratio
-
-    async def extrude(
-        self, mm: float, time: float, direction: str | bool | int | None = None
-    ):
-        if mm:
-            degrees = None
-            steps = math.floor(
-                ((degrees / 360) * self.steps_per_turn) * self.extrude_ratio
-            )
-            await self.step_turn(steps, steps / time, direction)
-            return
-        else:
-            return
-
-
-def initPrinter(setpins: dict = None):
+def initPrinter(setpins: dict | None = None):
     """
     # initPrinter
     initPrinter() initializes a default printer configaration, and returns a `Printer` control object. Can **optionally** specify PIN CONFIGARATION:
