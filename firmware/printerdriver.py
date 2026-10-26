@@ -4,7 +4,7 @@
 Micropython firmware for driving stepper motors with the DRV8825 module.
 """
 
-import asyncio  # pyright: ignore[reportMissingImports]
+import asyncio
 import math
 import re
 
@@ -236,16 +236,17 @@ class Extruder:
     def __init__(self, extruder_motor: StepperMotor, ratio: float = 1):
         self.extruder_motor = extruder_motor
         self.extrude_ratio = ratio
+        self.steps_per_turn = 360 / 1.8
 
     async def extrude(
         self, mm: float, time: float, direction: str | bool | int | None = None
     ):
         if mm:
-            degrees = None
+            degrees = 360 * mm
             steps = math.floor(
                 ((degrees / 360) * self.steps_per_turn) * self.extrude_ratio
             )
-            await self.step_turn(steps, steps / time, direction)
+            await self.extruder_motor.step_turn(steps, steps / time, direction)
             return
         else:
             return
@@ -299,6 +300,9 @@ class Printer:
         self.gcodeparser = GCodeParser(matchlist=self.matchlist)
         self.last_feed_rate = 0
 
+    def writeSerial(message):
+        print(f"send:{message}")
+
     def setpos(
         self, x: float | None = None, y: float | None = None, z: float | None = None
     ):
@@ -327,6 +331,7 @@ class Printer:
         x: float = 0,
         y: float = 0,
         z: float = 0,
+        e: float = 0,
     ):
         """
         # Move to Relative
@@ -356,6 +361,7 @@ class Printer:
             self.x_motor.turn(x_degrees, runtime, direction=x_direction),
             self.y_motor.turn(y_degrees, runtime, direction=y_direction),
             self.z_motor.turn(z_degrees, runtime, direction=z_direction),
+            self.main_extruder.extrude(e, runtime, direction=0),
         )
 
     def getpos(self):
@@ -365,13 +371,15 @@ class Printer:
         """
         return (self.pos["x"], self.pos["y"], self.pos["z"])
 
-    async def asyncmovetopoint(self, point, time=None, speed=None):
+    async def asyncmovetopoint(
+        self, point: list | tuple, time: float = None, speed: float = None
+    ):
         [start_x, start_y, start_z] = self.getpos()
-        [end_x, end_y, end_z] = point
+        [end_x, end_y, end_z, extrude] = point
         movement_vector = (end_x - start_x, end_y - start_y, end_z - start_z)
         [x, y, z] = movement_vector
         self.setpos(x=end_x, y=end_y, z=end_z)
-        await self.movetorelative(time=time, speed=speed, x=x, y=y, z=z)
+        await self.movetorelative(time=time, speed=speed, x=x, y=y, z=z, e=extrude)
 
     def moveto(
         self,
@@ -386,7 +394,7 @@ class Printer:
         # Move To
         Move to a point on with the control system, use `time` or `speed` as a setting, and optional coordinates `x`, `y`, and `z`.
         """
-        point = (x, y, z)
+        point = (x, y, z, e)
         if time or speed:
             asyncio.run(self.asyncmovetopoint(point, time=time, speed=speed))
 
@@ -537,3 +545,9 @@ def initPrinter(setpins: dict | None = None):
         extruder_auxilarry,
     )
     return printer
+
+
+def syringenozzle(
+    nozzle_diameter: float = 1.5, syringe_diameter: float = 10.5, screw_pitch: float = 2
+):
+    return screw_pitch * (nozzle_diameter**2 / syringe_diameter**2)
