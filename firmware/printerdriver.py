@@ -1,6 +1,5 @@
 """
 # printerdriver.py
- ©2026 Ethan Li
 Micropython firmware for driving stepper motors with the DRV8825 module.
 Additional Classes for ease of 3d printer control.
 """
