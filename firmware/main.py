@@ -15,6 +15,7 @@ starting_command = """
 import os
 writeSerial(os.uname().machine + '; ' + os.uname().version)
 printer = printerdriver.initPrinter()
+printer.main_extruder.extrude_ratio = printerdriver.syringenozzle(nozzle_diameter=0.75)
 """
 
 async def writeSerial(message: str):
