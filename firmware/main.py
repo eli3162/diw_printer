@@ -12,7 +12,7 @@ log_cache = []
 last_log = None
 
 starting_command = """
-import os
+import os, asyncio, sys, time
 writeSerial(os.uname().machine + '; ' + os.uname().version)
 printer = printerdriver.initPrinter()
 printer.main_extruder.extrude_ratio = printerdriver.syringenozzle(nozzle_diameter=0.75)
