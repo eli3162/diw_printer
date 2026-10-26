@@ -367,7 +367,7 @@ class Printer:
 
     def getpos(self):
         """
-        # Get Pos
+        # Get Software Position
         Get current printer position as tuple: `(x, y, z)`
         """
         return (self.pos["x"], self.pos["y"], self.pos["z"])
@@ -438,6 +438,7 @@ class Printer:
 
     def run_gcode(self, gcode: str | list):
         """
+        Run Gcode
         Run specified Gcode
         """
         parsed_gcode = self.gcodeparser.parse(gcode)
@@ -551,4 +552,8 @@ def initPrinter(setpins: dict | None = None):
 def syringenozzle(
     nozzle_diameter: float = 1.5, syringe_diameter: float = 10.5, screw_pitch: float = 2
 ):
+    '''
+    Syringe Nozzle:
+    Calculates how much to turn the stepper motor as a ratio with optional inputs of `nozzle_diameter` in mm, 'syringe_diameter' in mm, and `screw pitch` in mm per turn.
+    '''
     return screw_pitch * (nozzle_diameter**2 / syringe_diameter**2)
