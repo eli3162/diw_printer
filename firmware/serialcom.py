@@ -1,6 +1,6 @@
 """
 # Serial Communication Pipeline
-The Serial Communication Pipeline by Ethan Li © 2026
+A Serial Communication Pipeline by Ethan Li © 2026
 """
 
 import hashlib
