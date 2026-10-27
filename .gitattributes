@@ -1,2 +1,3 @@
 firmware/pyscript/* linguist-vendored
+/firmware/pyscript/* linguist-vendored
 pcb/ibom.html linguist-generated
