@@ -229,7 +229,7 @@ class BME680_I2C(Adafruit_BME680):
 
 def BME680(sda_pin: int, scl_pin: int, id: int = 0):
     '''
-    BME 680 Driver:
+    Adafruit BME 680 Driver:
     Accepts 2 requiered inputs: 
      - sda_pin -> Pin number for SDA PIN
      - scl_pin -> Pin number for SCL PIN
