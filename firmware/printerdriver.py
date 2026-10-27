@@ -1,8 +1,25 @@
 """
 # printerdriver.py
- ©2026 Ethan Li
 Micropython firmware for driving stepper motors with the DRV8825 module.
+Additional Classes for ease of 3d printer control.
 """
+
+'''
+        Copyright (C) 2026 Ethan Li
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License
+        along with this program.  If not, see <https://www.gnu.org/licenses/>.
+'''
 
 import asyncio
 import math
@@ -366,7 +383,7 @@ class Printer:
 
     def getpos(self):
         """
-        # Get Pos
+        # Get Software Position
         Get current printer position as tuple: `(x, y, z)`
         """
         return (self.pos["x"], self.pos["y"], self.pos["z"])
@@ -437,6 +454,7 @@ class Printer:
 
     def run_gcode(self, gcode: str | list):
         """
+        Run Gcode
         Run specified Gcode
         """
         parsed_gcode = self.gcodeparser.parse(gcode)
@@ -550,4 +568,8 @@ def initPrinter(setpins: dict | None = None):
 def syringenozzle(
     nozzle_diameter: float = 1.5, syringe_diameter: float = 10.5, screw_pitch: float = 2
 ):
+    '''
+    Syringe Nozzle:
+    Calculates how much to turn the stepper motor as a ratio with optional inputs of `nozzle_diameter` in mm, 'syringe_diameter' in mm, and `screw pitch` in mm per turn.
+    '''
     return screw_pitch * (nozzle_diameter**2 / syringe_diameter**2)
