@@ -82,7 +82,7 @@ async def py_handler(event):
 
 @when("mousedown", "#w")
 async def w_on_press(event):
-    payload = 'printer.y_motor.start_turn(360, 1)'
+    payload = 'printer.y_motor.start_turn(360, 0)'
     print(payload)
     await writeSerial(payload)
 
@@ -120,7 +120,7 @@ async def w_on_release(event):
 
 @when("mousedown", "#s")
 async def w_on_press(event):
-    payload = 'printer.y_motor.start_turn(360, 0)'
+    payload = 'printer.y_motor.start_turn(360, 1)'
     print(payload)
     await writeSerial(payload)
 
