@@ -34,6 +34,8 @@ printer = printerdriver.initPrinter()
 printer.main_extruder.extrude_ratio = printerdriver.syringenozzle(nozzle_diameter=0.75)
 """
 
+print("Copyright (C) 2026 Ethan Li: Press 'connect' button to start controlling printer.")
+
 async def writeSerial(message: str):
     await window.writeSerial(str(message))
 
@@ -94,39 +96,63 @@ async def w_on_release(event):
 
 
 @when("mousedown", "#a")
-async def w_on_press(event):
+async def a_on_press(event):
     payload = 'printer.x_motor.start_turn(360, 1)'
     print(payload)
     await writeSerial(payload)
 
 @when("mouseup", "#a")
-async def w_on_release(event):
+async def a_on_release(event):
     payload = 'printer.x_motor.stop_turn()'
     print(payload)
     await writeSerial(payload)
 
 
 @when("mousedown", "#d")
-async def w_on_press(event):
+async def on_press(event):
     payload = 'printer.x_motor.start_turn(360, 0)'
     print(payload)
     await writeSerial(payload)
 
 @when("mouseup", "#d")
-async def w_on_release(event):
+async def d_on_release(event):
     payload = 'printer.x_motor.stop_turn()'
     print(payload)
     await writeSerial(payload)
 
 @when("mousedown", "#s")
-async def w_on_press(event):
+async def s_on_press(event):
     payload = 'printer.y_motor.start_turn(360, 1)'
     print(payload)
     await writeSerial(payload)
 
 @when("mouseup", "#s")
-async def w_on_release(event):
+async def s_on_release(event):
     payload = 'printer.y_motor.stop_turn()'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mousedown", "#up")
+async def up_on_press(event):
+    payload = 'printer.z_motor.start_turn(760, 0)'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mouseup", "#up")
+async def up_on_release(event):
+    payload = 'printer.z_motor.stop_turn()'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mousedown", "#down")
+async def down_on_press(event):
+    payload = 'printer.z_motor.start_turn(760, 1)'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mouseup", "#down")
+async def down_on_release(event):
+    payload = 'printer.z_motor.stop_turn()'
     print(payload)
     await writeSerial(payload)
 
