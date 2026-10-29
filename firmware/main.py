@@ -1,25 +1,30 @@
-'''
-        Copyright (C) 2026 Ethan Li
+"""
+Copyright (C) 2026 Ethan Li
 
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <https://www.gnu.org/licenses/>.
-'''
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import time
-from pyscript import when, window, document
-from js import console # type: ignore
+
+from js import console  # type: ignore
+
+from pyscript import document, when, window
+
 
 def timenow():
     return time.ticks_us()
+
 
 log_to_terminal = False
 message_cache = []
@@ -34,14 +39,17 @@ printer = printerdriver.initPrinter()
 printer.main_extruder.extrude_ratio = printerdriver.syringenozzle(nozzle_diameter=0.75)
 """
 
-print("Copyright (C) 2026 Ethan Li: Press 'connect' button to start controlling printer.")
+print(
+    "Copyright (C) 2026 Ethan Li: Press 'connect' button to start controlling printer."
+)
+
 
 async def writeSerial(message: str):
     await window.writeSerial(str(message))
 
 
 async def receiveSerial(message):
-    global message_cache, last_message, log_cache, last_log, log_to_terminal
+    global last_message, last_log
     if message.startswith("send:"):
         message = message[5:]
         message_cache.append({"message": message, "time": timenow()})
@@ -52,107 +60,133 @@ async def receiveSerial(message):
         log_cache.append({"message": message, "time": timenow()})
         console.log(message)
         if log_to_terminal:
-            print(f'Log: {message}')
+            print(f"Log: {message}")
         last_log = message
 
+
 window.receiveFromSerial = receiveSerial
+
 
 async def connectSerial():
     await window.connectSerial()
 
+
 @when("click", "#connect")
 async def connect_handler(event):
-    global starting_command
     await connectSerial()
     await writeSerial(starting_command)
+
 
 @when("click", "#disconnect")
 async def disconnect_handler(event):
     window.location.reload()
 
+
 @when("click", "#gcode-input")
 async def gcode_handler(event):
     gcode = document.getElementById("gcode-upload").value
     payload = f'printer.run_gcode("""{gcode}""")'
-    print(f'GCode payload: {payload}')
+    print(f"GCode payload: {payload}")
     await writeSerial(payload)
+
 
 @when("click", "#py-input")
 async def py_handler(event):
-    python = (document.getElementById("py-upload").value).strip() + '\n'
+    python = (document.getElementById("py-upload").value).strip() + "\n"
     await writeSerial(python)
+
 
 @when("mousedown", "#w")
 async def w_on_press(event):
-    payload = 'printer.y_motor.start_turn(360, 0)'
-    print(payload)
+    payload = "printer.y_motor.start_turn(360, 0)"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mouseup", "#w")
 async def w_on_release(event):
-    payload = 'printer.y_motor.stop_turn()'
-    print(payload)
+    payload = "printer.y_motor.stop_turn()"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
 
 
 @when("mousedown", "#a")
 async def a_on_press(event):
-    payload = 'printer.x_motor.start_turn(360, 1)'
-    print(payload)
+    payload = "printer.x_motor.start_turn(360, 1)"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mouseup", "#a")
 async def a_on_release(event):
-    payload = 'printer.x_motor.stop_turn()'
-    print(payload)
+    payload = "printer.x_motor.stop_turn()"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
 
 
 @when("mousedown", "#d")
 async def on_press(event):
-    payload = 'printer.x_motor.start_turn(360, 0)'
-    print(payload)
+    payload = "printer.x_motor.start_turn(360, 0)"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mouseup", "#d")
 async def d_on_release(event):
-    payload = 'printer.x_motor.stop_turn()'
-    print(payload)
+    payload = "printer.x_motor.stop_turn()"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mousedown", "#s")
 async def s_on_press(event):
-    payload = 'printer.y_motor.start_turn(360, 1)'
-    print(payload)
+    payload = "printer.y_motor.start_turn(360, 1)"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mouseup", "#s")
 async def s_on_release(event):
-    payload = 'printer.y_motor.stop_turn()'
-    print(payload)
+    payload = "printer.y_motor.stop_turn()"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mousedown", "#up")
 async def up_on_press(event):
-    payload = 'printer.z_motor.start_turn(760, 0)'
-    print(payload)
+    payload = "printer.z_motor.start_turn(760, 0)"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mouseup", "#up")
 async def up_on_release(event):
-    payload = 'printer.z_motor.stop_turn()'
-    print(payload)
+    payload = "printer.z_motor.stop_turn()"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mousedown", "#down")
 async def down_on_press(event):
-    payload = 'printer.z_motor.start_turn(760, 1)'
-    print(payload)
+    payload = "printer.z_motor.start_turn(760, 1)"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
+
 
 @when("mouseup", "#down")
 async def down_on_release(event):
-    payload = 'printer.z_motor.stop_turn()'
-    print(payload)
+    payload = "printer.z_motor.stop_turn()"
+    if log_to_terminal:
+        print(payload)
     await writeSerial(payload)
-
