@@ -79,3 +79,54 @@ async def gcode_handler(event):
 async def py_handler(event):
     python = (document.getElementById("py-upload").value).strip() + '\n'
     await writeSerial(python)
+
+@when("mousedown", "#w")
+async def w_on_press(event):
+    payload = 'printer.y_motor.start_turn(360, 1)'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mouseup", "#w")
+async def w_on_release(event):
+    payload = 'printer.y_motor.stop_turn()'
+    print(payload)
+    await writeSerial(payload)
+
+
+@when("mousedown", "#a")
+async def w_on_press(event):
+    payload = 'printer.x_motor.start_turn(360, 1)'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mouseup", "#a")
+async def w_on_release(event):
+    payload = 'printer.x_motor.stop_turn()'
+    print(payload)
+    await writeSerial(payload)
+
+
+@when("mousedown", "#d")
+async def w_on_press(event):
+    payload = 'printer.x_motor.start_turn(360, 0)'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mouseup", "#d")
+async def w_on_release(event):
+    payload = 'printer.x_motor.stop_turn()'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mousedown", "#s")
+async def w_on_press(event):
+    payload = 'printer.y_motor.start_turn(360, 0)'
+    print(payload)
+    await writeSerial(payload)
+
+@when("mouseup", "#s")
+async def w_on_release(event):
+    payload = 'printer.y_motor.stop_turn()'
+    print(payload)
+    await writeSerial(payload)
+

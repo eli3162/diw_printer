@@ -1,26 +1,33 @@
 <!DOCTYPE html>
 <html lang="en" style="color: #ffffff; background-color: #333333; background: linear-gradient(268deg, #444444 0%, #535353 100%); background-attachment: scroll;">
-
-<head>
-    <meta charset=utf-8>
-    <title>Printer Dashboard</title>
-    <script src=./script/webserial.js></script>
-    <script src=./mini-coi-fd.js></script>
-    <meta name=viewport content="width=device-width,initial-scale=1">
-    <link rel=icon type=image/png href=./assets/favicon-96x96.png sizes=96x96>
-    <link rel=icon type=image/svg+xml href=./assets/favicon.svg>
-    <link rel="shortcut icon" href=./favicon.ico>
-    <link rel=apple-touch-icon sizes=180x180 href=./assets/apple-touch-icon.png>
-    <meta name=apple-mobile-web-app-title content="Printer Control">
-    <link rel=manifest href=./manifest.json>
-    <script type=module src=./pyscript/core.js offline></script>
-    <link rel=stylesheet href=./pyscript/core.css>
-
-<body>
-    <header style="box-shadow:0 0 3px #999;outline:1px solid #cccccc;background:linear-gradient(90deg,#232526,#414345);border-radius:15px;padding:15px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:center">
-        <button id=connect title=Connect style=grid-column:1;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)>Connect</button> <button id=disconnect title=Disconnect style=grid-column:2;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)>Disconnect</button> <textarea id=gcode-upload title=gcode-upload style=grid-column:1/-1;box-sizing:border-box;width:100%;min-height:60px;border-radius:10px;background:linear-gradient(90deg,#232526,#414345);color:#fff;padding:5px>Input Gcode</textarea> <button id=gcode-input title=gcode-input style=grid-column:1/-1;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)>Gcode Input</button> <textarea id=py-upload title=py-upload style=grid-column:1/-1;box-sizing:border-box;width:100%;min-height:60px;border-radius:10px;background:linear-gradient(90deg,#232526,#414345);color:#fff;padding:5px>Input Python</textarea> <button id=py-input title=py-input style=grid-column:1/-1;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)>Python Input</button>
-    </header><br>
-    <script type="mpy" src="./main.py" terminal></script>
-</body>
-
+    <head>
+        <meta charset="utf-8">
+        <title>Printer Dashboard</title>
+        <script src="./script/webserial.js"></script>
+        <script src="./mini-coi-fd.js"></script>
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <link rel="icon" type="image/png" href="./assets/favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+        <link rel="shortcut icon" href="./favicon.ico">
+        <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png">
+        <meta name="apple-mobile-web-app-title" content="Printer Control">
+        <link rel="manifest" href="./manifest.json">
+        <script type="module" src="./pyscript/core.js" offline></script>
+        <link rel="stylesheet" href="./pyscript/core.css">
+    <body>
+        <header style="box-shadow: 0 0 3px #999; outline: 1px solid #cccccc; background: linear-gradient(90deg,#232526,#414345); border-radius: 15px; padding: 15px; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; align-items: center; margin-bottom: 10px;">
+            <button id="connect" title="Connect" style="grid-column:1;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)">Connect</button> <button id="disconnect" title="Disconnect" style="grid-column:2;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)">Disconnect</button> <textarea id="gcode-upload" title="gcode-upload" style="grid-column:1/-1;box-sizing:border-box;width:100%;min-height:60px;border-radius:10px;background:linear-gradient(90deg,#232526,#414345);color:#fff;padding:5px">Input Gcode</textarea> <button id="gcode-input" title="gcode-input" style="grid-column:1/-1;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)">Gcode Input</button> <textarea id="py-upload" title="py-upload" style="grid-column:1/-1;box-sizing:border-box;width:100%;min-height:60px;border-radius:10px;background:linear-gradient(90deg,#232526,#414345);color:#fff;padding:5px">Input Python</textarea> <button id="py-input" title="py-input" style="grid-column:1/-1;color:#fff;font-variant:small-caps;font-size:15px;width:100%;height:30px;border-radius:5px;background:linear-gradient(90deg,#434343,#3c3c3c)">Python Input</button>
+            <header style="display: grid; grid-template-columns: 20% 20%; gap: 10px; align-items: start; grid-template-rows: 100%; justify-content: center; grid-area: auto / auto / auto / 2; width: 100%; margin-left: 50%;">
+                <button style="color: #fff; font-variant: small-caps; font-size: 15px; width: 100px; height: 100px; border-radius: 5px; background: linear-gradient(90deg,#434343,#3c3c3c); grid-area: 1 / 3 / auto / 4; visibility: hidden;"></button><button id="w" style="color: #fff; font-variant: small-caps; font-size: 50px; width: 100px; height: 100px; border-radius: 5px; background: linear-gradient(90deg,#434343,#3c3c3c); grid-area: 1 / 2 / auto / 3;" title="W">▲</button>
+            </header>
+            <header style="display: grid; grid-template-columns: 20% 20%; gap: 10px; align-items: start; grid-template-rows: 100%; justify-content: center; grid-area: auto / auto / auto / 2; width: 100%; margin-left: 50%;">
+                <button id="d" title="D" style="color: #fff; font-variant: small-caps; font-size: 50px; width: 100px; height: 100px; border-radius: 5px; background: linear-gradient(90deg,#434343,#3c3c3c); grid-area: 1 / 3 / auto / 4;">▶︎</button><button id="a" title="A" style="color: #fff; font-variant: small-caps; font-size: 50px; width: 100px; height: 100px; border-radius: 5px; background: linear-gradient(90deg,#434343,#3c3c3c); grid-area: 1 / 1 / 2 / 2;">◀</button>
+            </header>
+            <header style="display: grid; grid-template-columns: 20% 20%; gap: 10px; align-items: start; grid-template-rows: 100%; justify-content: center; grid-area: auto / auto / auto / 2; width: 100%; margin-left: 50%;">
+                <button style="color: #fff; font-variant: small-caps; font-size: 15px; width: 100px; height: 100px; border-radius: 5px; background: linear-gradient(90deg,#434343,#3c3c3c); grid-area: 1 / 3 / auto / 4; visibility: hidden;"></button><button id="s" title="S" style="color: #fff; font-variant: small-caps; font-size: 50px; width: 100px; height: 100px; border-radius: 5px; background: linear-gradient(90deg,#434343,#3c3c3c); grid-area: 1 / 2 / auto / 3;">▼</button>
+            </header>
+        </header>
+        <br>
+        <script type="mpy" src="./main.py" terminal></script>
+    </body>
 </html>
