@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import time
+import time, asyncio
 
 from js import console  # type: ignore
 
@@ -33,7 +33,7 @@ log_cache = []
 last_log = None
 
 starting_command = """
-import os, asyncio, sys, time
+import os, asyncio, sys, time, gc
 writeSerial('Printer Connected! Info: ' + os.uname().machine + '; ' + os.uname().version)
 printer = printerdriver.initPrinter()
 printer.main_extruder.extrude_ratio = printerdriver.syringenozzle(nozzle_diameter=0.75)
@@ -85,9 +85,27 @@ async def disconnect_handler(event):
 @when("click", "#gcode-input")
 async def gcode_handler(event):
     gcode = document.getElementById("gcode-upload").value
-    payload = f'printer.run_gcode("""{gcode}""")'
-    print(f"GCode payload: {payload}")
-    await writeSerial(payload)
+    unparsed_lines = gcode.splitlines()
+    parsed_lines = []
+    for line in unparsed_lines:
+        if line:
+            parsed_lines.append(line)
+
+    if log_to_terminal:
+        print(parsed_lines)
+
+    await writeSerial('writeSerial("--Clear--")')
+
+    length = len(parsed_lines)
+
+    for line_count in range(length):
+        payload = f'''printer.run_gcode("{parsed_lines[line_count]}")\nwriteSerial({line_count})'''
+        print(f'Running line {line_count}, {length - line_count - 1} left')
+        await writeSerial(payload)
+        while not str(last_message) == str(line_count):
+            await asyncio.sleep_ms(10)
+
+        print(f'Line {line_count} completed')
 
 
 @when("click", "#py-input")

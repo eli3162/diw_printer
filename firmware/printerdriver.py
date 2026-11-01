@@ -331,7 +331,7 @@ class Printer:
         x: float = 0,
         y: float = 0,
         z: float = 0,
-        e: float = 0,
+        e: float | None = None,
     ):
         """
         # Move to Relative
@@ -354,6 +354,8 @@ class Printer:
         elif speed:
             distance = math.sqrt(x**2 + y**2 + z**2)
             runtime = distance / speed
+            if runtime == 0 and e:
+                runtime = e / speed
         else:
             raise MachineError("User speed or time not specified")
 
@@ -385,15 +387,24 @@ class Printer:
         self,
         time: float | None = None,
         speed: float | None = None,
-        x: float = 0,
-        y: float = 0,
-        z: float = 0,
-        e: float = 0,
+        x: float | None = None,
+        y: float | None = None,
+        z: float | None = None,
+        e: float | None = None,
     ):
         """
         # Move To
         Move to a point on with the control system, use `time` or `speed` as a setting, and optional coordinates `x`, `y`, and `z`.
         """
+        if x is None:
+            x = self.pos['x']
+        if y is None:
+            y = self.pos['y']
+        if z is None:
+            z = self.pos['z']
+        if e is None:
+            e = 0
+
         point = (x, y, z, e)
         if time or speed:
             asyncio.run(self.asyncmovetopoint(point, time=time, speed=speed))
@@ -423,6 +434,9 @@ class Printer:
 
             else:
                 arguments["speed"] = 150
+
+            if self.speed_override:
+                arguments["speed"] = 10
 
             self.moveto(**arguments)
 
