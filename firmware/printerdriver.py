@@ -7,7 +7,6 @@ Micropython firmware for driving stepper motors with the DRV8825 module.
 import asyncio
 import math
 import re
-
 import machine
 
 
@@ -75,8 +74,10 @@ class StepperMotor:
         '''
         Deinit Timers for `freq` stepping
         '''
-        self.freq_timer.deinit()
-        self.deinit_timer.deinit()
+        if self.control_state:
+            self.freq_timer.deinit()
+            self.deinit_timer.deinit()
+            self.control_state = False
 
     def stop_turn(self):
         '''
@@ -120,14 +121,17 @@ class StepperMotor:
                 period=round(1000 * steps / freq),
                 callback=self.stop_timer,
             )
+            self.control_state = True
             await asyncio.sleep(steps / freq)
             self.stop()
         except KeyboardInterrupt:
             self.stop_timer(0)
             self.stop()
             try:
-                self.freq_timer.deinit()
-                self.deinit_timer.deinit()
+                if self.control_state:
+                    self.freq_timer.deinit()
+                    self.deinit_timer.deinit()
+                    self.control_state = False
             except Exception:
                 pass
         return
@@ -158,6 +162,7 @@ class StepperMotor:
         self.start()
         self.freq_timer = machine.Timer(-1)
         self.freq_timer.init(mode=machine.Timer.PERIODIC, freq=freq, callback=self.step)
+        self.control_state = True
         return
 
     async def turn(
@@ -175,7 +180,7 @@ class StepperMotor:
 
     def start_turn(self, degrees: float, direction: str | bool | int | None = None):
         '''
-        Starts a 
+        Starts a turn with speed `degrees` degrees per seconds, with direction `direction`
         '''
         if degrees:
             time = 1
@@ -185,7 +190,24 @@ class StepperMotor:
         else:
             return
 
-    def turn_step(self, degrees, time, direction):
+    def turn_step(self, degrees: float, time: float, direction: int | str | bool):
+        '''
+        Turns `degrees` degrees in `time` seconds in `direction` direction
+        '''
+        asyncio.run(self.turn(degrees, time, direction=direction))
+
+    def signed_turn(self, signed_degrees: float, time: float):
+        '''
+        Turns `signed_degrees` signed degrees in `time` seconds
+        '''
+        if signed_degrees > 0:
+            direction = 1
+        if signed_degrees < 0:
+            direction = 0
+        else:
+            raise MachineError('Unsigned degrees not acceptable for function signed_turn()')
+        
+        degrees = abs(signed_degrees)
         asyncio.run(self.turn(degrees, time, direction=direction))
 
 
