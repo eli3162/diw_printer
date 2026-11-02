@@ -38,6 +38,7 @@ class StepperMotor:
             self.step_pin: machine.Pin(self.step_pin, machine.Pin.OUT, value=0),
             self.dir_pin: machine.Pin(self.dir_pin, machine.Pin.OUT, value=0),
         }
+        self.control_state = False
 
     def digital_write(self, pin: int, value: int):
         '''
