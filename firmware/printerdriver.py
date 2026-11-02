@@ -230,6 +230,9 @@ class EndButton:
 
 
 class GCodeParser:
+    '''
+    GCodeParser for parsing RepRap Standard GCODE
+    '''
     def __init__(self, matchlist: dict | None = None):
         if matchlist:
             self.matchlist = matchlist
@@ -268,6 +271,9 @@ class GCodeParser:
         return {"command": "", "args": {}}
 
     def parse(self, inputdata: str | list):
+        '''
+        Parses a `str | list` of `inputdata` GCODE
+        '''
         if isinstance(inputdata, str):
             if inputdata.count("\n") > 1:
                 inputdata = inputdata.splitlines()
