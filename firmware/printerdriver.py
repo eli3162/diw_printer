@@ -40,32 +40,56 @@ class StepperMotor:
         }
 
     def digital_write(self, pin: int, value: int):
+        '''
+        Write to Digital Pin within `StepperMotor` scope
+        '''
         self.control_pins[pin].value(value)
 
     def start(self):
+        '''
+        Trigger `EN` Enable Pin
+        '''
         self.digital_write(self.enable_pin, 0)
 
     def stop(self):
+        '''
+        Disable `EN` Enable Pin
+        '''
         self.digital_write(self.enable_pin, 1)
 
     def set_direction(self, dir: int):
+        '''
+        Set `dir` Direction of class `int`, `0` for `False` and `1` for `True`
+        '''
         self.digital_write(self.dir_pin, dir)
 
     def step(self, time):
+        '''
+        Pulse `step` pin, used for `freq` timer
+        '''
         self.digital_write(self.step_pin, 1)
         self.digital_write(self.step_pin, 0)
 
-    def stop_timer(self, time):
+    def stop_timer(self, time = 0):
+        '''
+        Deinit Timers for `freq` stepping
+        '''
         self.freq_timer.deinit()
         self.deinit_timer.deinit()
 
     def stop_turn(self):
+        '''
+        Deactivate `StepperMotor` `EN` enable pin and deinit `freq` timers
+        '''
         self.stop()
-        self.freq_timer.deinit()
-
+        self.stop_timer()
+ 
     async def step_turn(
         self, steps: int, freq: float, direction: str | bool | int | None = None
     ):
+        '''
+        `async` function for stepping `steps: int` steps at `freq: float` steps per second, and direction `direction: str | bool | int`
+        '''
         if direction in ["forward", "Forward", 1, True, "f"]:
             self.set_direction(1)
         elif direction in ["backward", "Backward", 0, False, "b"]:
@@ -110,6 +134,9 @@ class StepperMotor:
     def start_step_turn(
         self, steps: int, freq: float, direction: str | bool | int | None = None
     ):
+        '''
+        Starts an `freq` step at `steps` steps per second with `direction` direction
+        '''
         if direction in ["forward", "Forward", 1, True, "f"]:
             self.set_direction(1)
         elif direction in ["backward", "Backward", 0, False, "b"]:
@@ -135,6 +162,9 @@ class StepperMotor:
     async def turn(
         self, degrees: float, time: float, direction: str | bool | int | None = None
     ):
+        '''
+        Turns `degrees` degrees in `time` seconds in `direction` direction
+        '''
         if degrees:
             steps = math.floor((degrees / 360) * self.steps_per_turn)
             await self.step_turn(steps, steps / time, direction)
@@ -143,6 +173,9 @@ class StepperMotor:
             return
 
     def start_turn(self, degrees: float, direction: str | bool | int | None = None):
+        '''
+        Starts a 
+        '''
         if degrees:
             time = 1
             steps = math.floor((degrees / 360) * self.steps_per_turn)
