@@ -4,11 +4,7 @@
 Micropython firmware for driving stepper motors with the DRV8825 module.
 """
 
-import asyncio
-import math
-import re
-
-import machine
+import asyncio, math, re, machine
 
 
 class MachineError(Exception):
@@ -38,34 +34,61 @@ class StepperMotor:
             self.step_pin: machine.Pin(self.step_pin, machine.Pin.OUT, value=0),
             self.dir_pin: machine.Pin(self.dir_pin, machine.Pin.OUT, value=0),
         }
+        self.control_state = False
 
     def digital_write(self, pin: int, value: int):
+        '''
+        Write to Digital Pin within `StepperMotor` scope
+        '''
         self.control_pins[pin].value(value)
 
     def start(self):
+        '''
+        Trigger `EN` Enable Pin
+        '''
         self.digital_write(self.enable_pin, 0)
 
     def stop(self):
+        '''
+        Disable `EN` Enable Pin
+        '''
         self.digital_write(self.enable_pin, 1)
 
     def set_direction(self, dir: int):
+        '''
+        Set `dir` Direction of class `int`, `0` for `False` and `1` for `True`
+        '''
         self.digital_write(self.dir_pin, dir)
 
     def step(self, time):
+        '''
+        Pulse `step` pin, used for `freq` timer
+        '''
         self.digital_write(self.step_pin, 1)
         self.digital_write(self.step_pin, 0)
 
-    def stop_timer(self, time):
-        self.freq_timer.deinit()
-        self.deinit_timer.deinit()
+    def stop_timer(self, time = 0):
+        '''
+        Deinit Timers for `freq` stepping
+        '''
+        if self.control_state:
+            self.freq_timer.deinit()
+            self.deinit_timer.deinit()
+            self.control_state = False
 
     def stop_turn(self):
+        '''
+        Deactivate `StepperMotor` `EN` enable pin and deinit `freq` timers
+        '''
         self.stop()
-        self.freq_timer.deinit()
-
+        self.stop_timer()
+ 
     async def step_turn(
         self, steps: int, freq: float, direction: str | bool | int | None = None
     ):
+        '''
+        `async` function for stepping `steps: int` steps at `freq: float` steps per second, and direction `direction: str | bool | int`
+        '''
         if direction in ["forward", "Forward", 1, True, "f"]:
             self.set_direction(1)
         elif direction in ["backward", "Backward", 0, False, "b"]:
@@ -95,14 +118,17 @@ class StepperMotor:
                 period=round(1000 * steps / freq),
                 callback=self.stop_timer,
             )
+            self.control_state = True
             await asyncio.sleep(steps / freq)
             self.stop()
         except KeyboardInterrupt:
             self.stop_timer(0)
             self.stop()
             try:
-                self.freq_timer.deinit()
-                self.deinit_timer.deinit()
+                if self.control_state:
+                    self.freq_timer.deinit()
+                    self.deinit_timer.deinit()
+                    self.control_state = False
             except Exception:
                 pass
         return
@@ -110,6 +136,9 @@ class StepperMotor:
     def start_step_turn(
         self, steps: int, freq: float, direction: str | bool | int | None = None
     ):
+        '''
+        Starts an `freq` step at `steps` steps per second with `direction` direction
+        '''
         if direction in ["forward", "Forward", 1, True, "f"]:
             self.set_direction(1)
         elif direction in ["backward", "Backward", 0, False, "b"]:
@@ -130,11 +159,15 @@ class StepperMotor:
         self.start()
         self.freq_timer = machine.Timer(-1)
         self.freq_timer.init(mode=machine.Timer.PERIODIC, freq=freq, callback=self.step)
+        self.control_state = True
         return
 
     async def turn(
         self, degrees: float, time: float, direction: str | bool | int | None = None
     ):
+        '''
+        Turns `degrees` degrees in `time` seconds in `direction` direction
+        '''
         if degrees:
             steps = math.floor((degrees / 360) * self.steps_per_turn)
             await self.step_turn(steps, steps / time, direction)
@@ -143,6 +176,9 @@ class StepperMotor:
             return
 
     def start_turn(self, degrees: float, direction: str | bool | int | None = None):
+        '''
+        Starts a turn with speed `degrees` degrees per seconds, with direction `direction`
+        '''
         if degrees:
             time = 1
             steps = math.floor((degrees / 360) * self.steps_per_turn)
@@ -151,7 +187,24 @@ class StepperMotor:
         else:
             return
 
-    def turn_step(self, degrees, time, direction):
+    def turn_step(self, degrees: float, time: float, direction: int | str | bool):
+        '''
+        Turns `degrees` degrees in `time` seconds in `direction` direction
+        '''
+        asyncio.run(self.turn(degrees, time, direction=direction))
+
+    def signed_turn(self, signed_degrees: float, time: float):
+        '''
+        Turns `signed_degrees` signed degrees in `time` seconds
+        '''
+        if signed_degrees > 0:
+            direction = 1
+        if signed_degrees < 0:
+            direction = 0
+        else:
+            raise MachineError('Unsigned degrees not acceptable for function signed_turn()')
+        
+        degrees = abs(signed_degrees)
         asyncio.run(self.turn(degrees, time, direction=direction))
 
 
@@ -174,6 +227,9 @@ class EndButton:
 
 
 class GCodeParser:
+    '''
+    GCodeParser for parsing RepRap Standard GCODE
+    '''
     def __init__(self, matchlist: dict | None = None):
         if matchlist:
             self.matchlist = matchlist
@@ -212,6 +268,9 @@ class GCodeParser:
         return {"command": "", "args": {}}
 
     def parse(self, inputdata: str | list):
+        '''
+        Parses a `str | list` of `inputdata` GCODE
+        '''
         if isinstance(inputdata, str):
             if inputdata.count("\n") > 1:
                 inputdata = inputdata.splitlines()
@@ -471,21 +530,6 @@ def initPrinter(setpins: dict | None = None):
     """
     # initPrinter
     initPrinter() initializes a default printer configaration, and returns a `Printer` control object. Can **optionally** specify PIN CONFIGARATION:
-    Default Pin config:
-    ```
-        pins = {
-            'x_motor': {'en': 0, 'step': 1, 'dir': 2},
-            'y_motor': {'en': 3, 'step': 4, 'dir': 5},
-            'z_motor': {'en': 6, 'step': 7, 'dir': 8},
-            'extruder_main': {'en': 9, 'step': 10, 'dir': 11, 'ratio': 1},
-            'extruder_secondary': {'en': 12, 'step': 13, 'dir': 14, 'ratio': 1},
-            'extruder_auxilarry': {'en': 15, 'step': 16, 'dir': 17, 'ratio': 1},
-            'x_limit': {'pin': 21},
-            'y_limit': {'pin': 22},
-            'z_limit': {'pin': 26},
-            'aux': {'sda': 23, 'scl': 24, 'pwm': 25}
-        }
-    ```
     """
     if not setpins is None:
         pins = setpins
