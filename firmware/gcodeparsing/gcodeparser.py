@@ -5,7 +5,7 @@ printer = printerdriver.initPrinter()
 printer.main_extruder.extrude_ratio = printerdriver.syringenozzle(nozzle_diameter=0.75)
 '''
 
-def generate_py(gcode, speed):
+def generate_py(gcode: str, speed: float):
     [latestx, latesty, lateste] = (0, 0, 0)
     payload = py_header.splitlines()
     for line in gcode:
@@ -26,7 +26,7 @@ def generate_py(gcode, speed):
     return ('\n'.join(payload).lstrip())
 
 
-def generate_gcode(gcode, speed):
+def generate_gcode(gcode: str, speed: float):
     [latestx, latesty, lateste, payload, addspeed] = (0, 0, 0, list(), True)
     for line in gcode:
         [x, y, e] = (line[0], line[1], line[2])
