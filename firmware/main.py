@@ -32,5 +32,6 @@ def listenSerialExec(timeout: int = 100):
             except Exception as e:
                 stout = e
                 writeSerial(stout)
-                
-listenSerialExec()
+
+if __name__ is '__main__': 
+    listenSerialExec()

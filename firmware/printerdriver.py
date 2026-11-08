@@ -4,7 +4,7 @@
 Micropython firmware for driving stepper motors with the DRV8825 module.
 """
 
-import asyncio, math, re, machine
+import asyncio, math, re, machine, time
 
 
 class MachineError(Exception):
@@ -24,6 +24,7 @@ class StepperMotor:
         step_pin: int | str,
         dir_pin: int | str,
         steps_per_turn: int = 200,
+        anti_drift: float = 0,
     ):
         self.enable_pin = enable_pin
         self.step_pin = step_pin
@@ -35,6 +36,7 @@ class StepperMotor:
             self.dir_pin: machine.Pin(self.dir_pin, machine.Pin.OUT, value=0),
         }
         self.control_state = False
+        self.anti_drift_time = anti_drift
 
     def digital_write(self, pin: int, value: int):
         '''
@@ -54,6 +56,13 @@ class StepperMotor:
         '''
         self.digital_write(self.enable_pin, 1)
 
+    def wait_to_stop(self, waittime=0.1):
+        time.sleep(waittime)
+        self.stop()
+
+    def set_anti_drift(self, anti_drift_time: float):
+        self.anti_drift_time = anti_drift_time
+
     def set_direction(self, dir: int):
         '''
         Set `dir` Direction of class `int`, `0` for `False` and `1` for `True`
@@ -72,16 +81,21 @@ class StepperMotor:
         Deinit Timers for `freq` stepping
         '''
         if self.control_state:
-            self.freq_timer.deinit()
-            self.deinit_timer.deinit()
-            self.control_state = False
+            try:
+                self.freq_timer.deinit()
+                self.deinit_timer.deinit()
+            except:
+                self.control_state = False
 
     def stop_turn(self):
         '''
         Deactivate `StepperMotor` `EN` enable pin and deinit `freq` timers
         '''
-        self.stop()
         self.stop_timer()
+        if self.anti_drift_time:
+            self.wait_to_stop(waittime=self.anti_drift_time)
+        else:
+            self.stop()
  
     async def step_turn(
         self, steps: int, freq: float, direction: str | bool | int | None = None
@@ -122,15 +136,8 @@ class StepperMotor:
             await asyncio.sleep(steps / freq)
             self.stop()
         except KeyboardInterrupt:
-            self.stop_timer(0)
+            self.stop_timer()
             self.stop()
-            try:
-                if self.control_state:
-                    self.freq_timer.deinit()
-                    self.deinit_timer.deinit()
-                    self.control_state = False
-            except Exception:
-                pass
         return
 
     def start_step_turn(

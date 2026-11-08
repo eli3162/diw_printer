@@ -540,7 +540,7 @@
       "netlist": "",
       "plot": "../gerber/",
       "specctra_dsn": "",
-      "step": "",
+      "step": "../compact_stepper_controller.glb",
       "vrml": ""
     },
     "page_layout_descr_file": ""
