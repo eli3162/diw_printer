@@ -6,6 +6,58 @@ Micropython firmware for driving stepper motors with the DRV8825 module.
 
 import asyncio, math, re, machine, time
 
+gcode_spec_list = {
+    "G0": "linear_move",
+    "G1": "linear_move",
+    "G2": "clockwise_arc",
+    "G3": "counterclockwise_arc",
+    "G4": "dwell",
+    "G10": "retract_filament",
+    "G11": "unretract_filament",
+    "G20": "units_inch",
+    "G21": "units_mm",
+    "G28": "home",
+    "G90": "absolute_pos",
+    "G91": "relative_pos",
+    "G92": "set_pos",
+    "M0": "stop",
+    "M1": "sleep",
+    "M2": "prgm_end",
+    "M3": "clockwise_spindle_on",
+    "M4": "counterclockwise_spindle_on",
+    "M5": "spindle_off",
+    "M18": "disable_motors",
+    "M20": "list_sd",
+    "M21": "init_sd",
+    "M22": "deinit_sd",
+    "M23": "select_sd",
+    "M24": 'start_sd_pr"int',
+    "M25": "pause_sd_print",
+    "M26": "pos_sd",
+    "M27": "check_sd",
+    "M28": "start_sd_write",
+    "M29": "stop_sd_write",
+    "M30": "delete_sd_file",
+    "M32": "start_sd_file_print",
+    "M42": "set_pin",
+    "M82": "absolute_extruder",
+    "M83": "relative_extruder",
+    "M84": "disable_idle_hold",
+    "M104": "set_extruder_temp",
+    "M105": "get_extruder_temp",
+    "M106": "fan_on",
+    "M107": "fan_off",
+    "M108": "bed_heating_off",
+    "M109": "extruder_heat_wait",
+    "M112": "emergency_stop",
+    "M114": "get_pos",
+    "M115": "get_firmware",
+    "M140": "fast_bed_heating",
+    "M150": "led_color",
+    "M190": "wait_bed_heating",
+    "M300": "beep",
+}
+
 
 class MachineError(Exception):
     """Base Class for Physical Machine based Errors"""
@@ -15,7 +67,7 @@ class StepperMotor:
     """
     # Stepper Motor
     Stepper Motor Class, configurable with three pins: the **EN** / Enable pin, the **STEP** / Step pin, and the **DIR** / Direction pin.
-    Additional config to change the amount of steps needed for a <u>full rotation</u>: `steps_per_turn`
+    Additional config to change the amount of steps needed for a full rotation: `steps_per_turn`
     """
 
     def __init__(
@@ -24,7 +76,7 @@ class StepperMotor:
         step_pin: int | str,
         dir_pin: int | str,
         steps_per_turn: int = 200,
-        anti_drift: float = 0,
+        deinit_when_off: bool = True,
     ):
         self.enable_pin = enable_pin
         self.step_pin = step_pin
@@ -36,50 +88,44 @@ class StepperMotor:
             self.dir_pin: machine.Pin(self.dir_pin, machine.Pin.OUT, value=0),
         }
         self.control_state = False
-        self.anti_drift_time = anti_drift
+        self.deinit_when_off = deinit_when_off
 
     def digital_write(self, pin: int, value: int):
-        '''
+        """
         Write to Digital Pin within `StepperMotor` scope
-        '''
+        """
         self.control_pins[pin].value(value)
 
     def start(self):
-        '''
+        """
         Trigger `EN` Enable Pin
-        '''
+        """
         self.digital_write(self.enable_pin, 0)
 
-    def stop(self):
-        '''
+    def stop(self, override: bool = False):
+        """
         Disable `EN` Enable Pin
-        '''
-        self.digital_write(self.enable_pin, 1)
-
-    def wait_to_stop(self, waittime=0.1):
-        time.sleep(waittime)
-        self.stop()
-
-    def set_anti_drift(self, anti_drift_time: float):
-        self.anti_drift_time = anti_drift_time
+        """
+        if self.deinit_when_off or override:
+            self.digital_write(self.enable_pin, 1)
 
     def set_direction(self, dir: int):
-        '''
+        """
         Set `dir` Direction of class `int`, `0` for `False` and `1` for `True`
-        '''
+        """
         self.digital_write(self.dir_pin, dir)
 
     def step(self, time):
-        '''
+        """
         Pulse `step` pin, used for `freq` timer
-        '''
+        """
         self.digital_write(self.step_pin, 1)
         self.digital_write(self.step_pin, 0)
 
-    def stop_timer(self, time = 0):
-        '''
+    def stop_timer(self, time=0):
+        """
         Deinit Timers for `freq` stepping
-        '''
+        """
         if self.control_state:
             try:
                 self.freq_timer.deinit()
@@ -88,21 +134,18 @@ class StepperMotor:
                 self.control_state = False
 
     def stop_turn(self):
-        '''
+        """
         Deactivate `StepperMotor` `EN` enable pin and deinit `freq` timers
-        '''
+        """
         self.stop_timer()
-        if self.anti_drift_time:
-            self.wait_to_stop(waittime=self.anti_drift_time)
-        else:
-            self.stop()
- 
+        self.stop()
+
     async def step_turn(
         self, steps: int, freq: float, direction: str | bool | int | None = None
     ):
-        '''
+        """
         `async` function for stepping `steps: int` steps at `freq: float` steps per second, and direction `direction: str | bool | int`
-        '''
+        """
         if direction in ["forward", "Forward", 1, True, "f"]:
             self.set_direction(1)
         elif direction in ["backward", "Backward", 0, False, "b"]:
@@ -143,9 +186,9 @@ class StepperMotor:
     def start_step_turn(
         self, steps: int, freq: float, direction: str | bool | int | None = None
     ):
-        '''
+        """
         Starts an `freq` step at `steps` steps per second with `direction` direction
-        '''
+        """
         if direction in ["forward", "Forward", 1, True, "f"]:
             self.set_direction(1)
         elif direction in ["backward", "Backward", 0, False, "b"]:
@@ -172,9 +215,9 @@ class StepperMotor:
     async def turn(
         self, degrees: float, time: float, direction: str | bool | int | None = None
     ):
-        '''
+        """
         Turns `degrees` degrees in `time` seconds in `direction` direction
-        '''
+        """
         if degrees:
             steps = math.floor((degrees / 360) * self.steps_per_turn)
             await self.step_turn(steps, steps / time, direction)
@@ -183,9 +226,9 @@ class StepperMotor:
             return
 
     def start_turn(self, degrees: float, direction: str | bool | int | None = None):
-        '''
+        """
         Starts a turn with speed `degrees` degrees per seconds, with direction `direction`
-        '''
+        """
         if degrees:
             time = 1
             steps = math.floor((degrees / 360) * self.steps_per_turn)
@@ -195,24 +238,34 @@ class StepperMotor:
             return
 
     def turn_step(self, degrees: float, time: float, direction: int | str | bool):
-        '''
+        """
         Turns `degrees` degrees in `time` seconds in `direction` direction
-        '''
+        """
         asyncio.run(self.turn(degrees, time, direction=direction))
 
     def signed_turn(self, signed_degrees: float, time: float):
-        '''
+        """
         Turns `signed_degrees` signed degrees in `time` seconds
-        '''
+        """
         if signed_degrees > 0:
             direction = 1
         if signed_degrees < 0:
             direction = 0
         else:
-            raise MachineError('Unsigned degrees not acceptable for function signed_turn()')
-        
+            raise MachineError(
+                "Unsigned degrees not acceptable for function signed_turn()"
+            )
+
         degrees = abs(signed_degrees)
         asyncio.run(self.turn(degrees, time, direction=direction))
+
+    def lock(self):
+        self.deinit_when_off = False
+        self.start()
+
+    def unlock(self):
+        self.deinit_when_off = True
+        self.stop()
 
 
 class EndButton:
@@ -233,17 +286,15 @@ class EndButton:
         return self.pin_obj.value() == 1
 
 
-class GCodeParser:
-    '''
-    GCodeParser for parsing RepRap Standard GCODE
-    '''
-    def __init__(self, matchlist: dict | None = None):
-        if matchlist:
-            self.matchlist = matchlist
-        else:
-            self.matchlist = {}
+def gcode_parse(inputdata):
+    if not isinstance(inputdata, tuple):
+        if isinstance(inputdata, str):
+            inputdata = tuple([inputdata])
+        elif isinstance(inputdata, list):
+            inputdata = tuple(inputdata)
 
-    def parseline(self, line: str):
+    output = []
+    for line in inputdata:
         if ";" in line:
             line = line.split(";", 1)[0]
 
@@ -254,43 +305,24 @@ class GCodeParser:
         while "" in phrases:
             phrases.remove("")
 
-        try:
-            if phrases:
-                command = phrases.pop(0).upper()
-                raw_arguments = phrases
+        if phrases:
+            command = phrases.pop(0).upper()
+            raw_arguments = phrases
+            arguments = {}
+            for argument in raw_arguments:
+                if "'" in argument[1:] or '"' in argument[1:]:
+                    arguments[argument[:1].lower()] = argument[1:]
+                else:
+                    arguments[argument[:1].lower()] = float(argument[1:])
+            if command or arguments:
+                if command in gcode_spec_list:
+                    name = gcode_spec_list[command]
+                else:
+                    name = "Not Implemented"
 
-                arguments = {}
-                for argument in raw_arguments:
-                    if "'" in argument[1:] or '"' in argument[1:]:
-                        arguments[argument[:1].lower()] = argument[1:]
-                    else:
-                        arguments[argument[:1].lower()] = float(argument[1:])
+                output.append({"command": command, "name": name, "args": arguments})
 
-                if command in self.matchlist:
-                    command = self.matchlist[command]
-
-                return {"command": command, "args": arguments}
-        except Exception:
-            pass
-        return {"command": "", "args": {}}
-
-    def parse(self, inputdata: str | list):
-        '''
-        Parses a `str | list` of `inputdata` GCODE
-        '''
-        if isinstance(inputdata, str):
-            if inputdata.count("\n") > 1:
-                inputdata = inputdata.splitlines()
-            else:
-                return self.parseline(inputdata)
-
-        if isinstance(inputdata, list):
-            output = []
-            for line in inputdata:
-                parsedline = self.parseline(line)
-                if parsedline != {"command": "", "args": {}}:
-                    output.append(parsedline)
-            return output
+    return output
 
 
 class Extruder:
@@ -362,8 +394,6 @@ class Printer:
         )
 
         self.pos = {"x": 0, "y": 0, "z": 0}
-        self.matchlist = None
-        self.gcodeparser = GCodeParser(matchlist=self.matchlist)
         self.last_feed_rate = 0
 
     def writeSerial(message):
@@ -405,13 +435,13 @@ class Printer:
         """
         horizontal_conversion_const = 360 / (16 * math.pi)
         vertical_conversion_const = 360 / 8
-        y = -y
         x_degrees = x * horizontal_conversion_const
         y_degrees = y * horizontal_conversion_const
         z_degrees = z * vertical_conversion_const
         [x_degrees, x_direction] = self.signed_direction(x_degrees)
         [y_degrees, y_direction] = self.signed_direction(y_degrees)
         [z_degrees, z_direction] = self.signed_direction(z_degrees)
+        [e_mm, e_direction] = self.signed_direction(e)
 
         if time and speed:
             raise MachineError("User may not choose both time and speed inputs")
@@ -425,18 +455,17 @@ class Printer:
         else:
             raise MachineError("User speed or time not specified")
 
+        [end_x, end_y, end_z] = [self.pos['x']+x, self.pos['y']+y, self.pos['z']+z]
+        self.setpos(x=end_x, y=end_y, z=end_z)
+
         await asyncio.gather(
             self.x_motor.turn(x_degrees, runtime, direction=x_direction),
             self.y_motor.turn(y_degrees, runtime, direction=y_direction),
             self.z_motor.turn(z_degrees, runtime, direction=z_direction),
-            self.main_extruder.extrude(e, runtime, direction=0),
+            self.main_extruder.extrude(e_mm, runtime, direction=e_direction),
         )
 
     def getpos(self):
-        """
-        # Get Pos
-        Get current printer position as tuple: `(x, y, z)`
-        """
         return (self.pos["x"], self.pos["y"], self.pos["z"])
 
     async def asyncmovetopoint(
@@ -446,7 +475,6 @@ class Printer:
         [end_x, end_y, end_z, extrude] = point
         movement_vector = (end_x - start_x, end_y - start_y, end_z - start_z)
         [x, y, z] = movement_vector
-        self.setpos(x=end_x, y=end_y, z=end_z)
         await self.movetorelative(time=time, speed=speed, x=x, y=y, z=z, e=extrude)
 
     def moveto(
@@ -463,11 +491,11 @@ class Printer:
         Move to a point on with the control system, use `time` or `speed` as a setting, and optional coordinates `x`, `y`, and `z`.
         """
         if x is None:
-            x = self.pos['x']
+            x = self.pos["x"]
         if y is None:
-            y = self.pos['y']
+            y = self.pos["y"]
         if z is None:
-            z = self.pos['z']
+            z = self.pos["z"]
         if e is None:
             e = 0
 
@@ -482,14 +510,17 @@ class Printer:
         """
         self.moveto(speed=100, x=0, y=0, z=0)
 
-    def runcodeline(self, pycode: str):
-        command = pycode["command"]
-        arguments = pycode["args"]
-        if command in "G0":
-            arguments["speed"] = 150
-            self.moveto(**arguments)
+    def wait(self, p: float = 0, s: float = 0):
+        time.sleep(p / 1000 + s)
 
-        elif command in "G1":
+    def runcodeline(self, parsed_gcode: str):
+        name = parsed_gcode["name"]
+        command = parsed_gcode["command"]
+        arguments = parsed_gcode["arguments"]
+
+        arguments["f"] = arguments["f"] / 60
+
+        if name is "linear_move":
             if "f" in arguments:
                 arguments["speed"] = arguments["f"]
                 self.last_feed_rate = arguments["f"]
@@ -502,35 +533,47 @@ class Printer:
                 arguments["speed"] = 150
 
             if self.speed_override:
-                arguments["speed"] = 10
+                arguments["speed"] = self.speed_override
 
             self.moveto(**arguments)
 
-        elif command in "G28":
+        elif name is "home":
             self.hone_axis()
 
-        elif command in "G92":
+        elif name is "set_pos":
             if "e" in arguments:
                 arguments.pop("e")
 
             self.setpos(**arguments)
 
+        elif name is "dwell":
+            self.wait(**arguments)
+
+        else:
+            print(f"Error: No implementation found for gcode {command}, name {name}.")
+
     def run_gcode(self, gcode: str | list):
         """
         Run specified Gcode
         """
-        parsed_gcode = self.gcodeparser.parse(gcode)
-        if isinstance(parsed_gcode, list):
-            for line in parsed_gcode:
-                self.runcodeline(line)
-        else:
-            self.runcodeline(parsed_gcode)
+        parsed_gcode = gcode_parse(gcode)
+        for line in parsed_gcode:
+            self.runcodeline(line)
 
     def hone_axis(self):
         """
         Uses Limitswitches to hone axis to origin
         """
-        # \\ TODO !
+
+    def lock(self):
+        self.x_motor.lock()
+        self.y_motor.lock()
+        self.z_motor.lock()
+
+    def unlock(self):
+        self.x_motor.unlock()
+        self.y_motor.unlock()
+        self.z_motor.unlock()
 
 
 def initPrinter(setpins: dict | None = None):

@@ -5,7 +5,7 @@ def slice_latex(latex: str):
     plain_text = str(LatexNodes2Text().latex_to_text(latex))
     plain_text = eval(plain_text)
     print(plain_text)
-    py = generate_py(speed=20, gcode=plain_text, nozzle_diameter=0.75, layers=3)
+    py = generate_py(speed=20, gcode=plain_text, nozzle_diameter=0.75, layers=1)
     return py
 
 if __name__ == '__main__':
