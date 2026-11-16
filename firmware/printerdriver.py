@@ -4,7 +4,11 @@
 Micropython firmware for driving stepper motors with the DRV8825 module.
 """
 
-import asyncio, math, re, machine, time
+import asyncio
+import math
+import re
+import time
+import machine
 
 gcode_spec_list = {
     "G0": "linear_move",
@@ -455,7 +459,11 @@ class Printer:
         else:
             raise MachineError("User speed or time not specified")
 
-        [end_x, end_y, end_z] = [self.pos['x']+x, self.pos['y']+y, self.pos['z']+z]
+        [end_x, end_y, end_z] = [
+            self.pos["x"] + x,
+            self.pos["y"] + y,
+            self.pos["z"] + z,
+        ]
         self.setpos(x=end_x, y=end_y, z=end_z)
 
         await asyncio.gather(
@@ -520,7 +528,7 @@ class Printer:
 
         arguments["f"] = arguments["f"] / 60
 
-        if name is "linear_move":
+        if name == "linear_move":
             if "f" in arguments:
                 arguments["speed"] = arguments["f"]
                 self.last_feed_rate = arguments["f"]
@@ -537,16 +545,16 @@ class Printer:
 
             self.moveto(**arguments)
 
-        elif name is "home":
+        elif name == "home":
             self.hone_axis()
 
-        elif name is "set_pos":
+        elif name == "set_pos":
             if "e" in arguments:
                 arguments.pop("e")
 
             self.setpos(**arguments)
 
-        elif name is "dwell":
+        elif name == "dwell":
             self.wait(**arguments)
 
         else:
